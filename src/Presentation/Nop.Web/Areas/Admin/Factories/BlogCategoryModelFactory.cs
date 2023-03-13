@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
@@ -12,6 +13,7 @@ using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Seo;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
+using Nop.Web.Areas.Admin.Models.Blogs;
 using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Factories;
@@ -22,7 +24,7 @@ namespace Nop.Web.Areas.Admin.Factories
     /// <summary>
     /// Represents the category model factory implementation
     /// </summary>
-    public partial class CategoryModelFactory : ICategoryModelFactory
+    public partial class BlogCategoryModelFactory : IBlogCategoryModelFactory
     {
         #region Fields
 
@@ -30,8 +32,8 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly CurrencySettings _currencySettings;
         private readonly ICurrencyService _currencyService;
         private readonly IAclSupportedModelFactory _aclSupportedModelFactory;
-        private readonly IBaseAdminModelFactory _baseAdminModelFactory;
-        private readonly ICategoryService _categoryService;
+        private readonly IBlogBaseAdminModelFactory _baseAdminModelFactory;
+        private readonly IBlogCategoryService _categoryService;
         private readonly IDiscountService _discountService;
         private readonly IDiscountSupportedModelFactory _discountSupportedModelFactory;
         private readonly ILocalizationService _localizationService;
@@ -44,12 +46,12 @@ namespace Nop.Web.Areas.Admin.Factories
 
         #region Ctor
 
-        public CategoryModelFactory(CatalogSettings catalogSettings,
+        public BlogCategoryModelFactory(CatalogSettings catalogSettings,
             CurrencySettings currencySettings,
             ICurrencyService currencyService,
             IAclSupportedModelFactory aclSupportedModelFactory,
-            IBaseAdminModelFactory baseAdminModelFactory,
-            ICategoryService categoryService,
+            IBlogBaseAdminModelFactory baseAdminModelFactory,
+            IBlogCategoryService categoryService,
             IDiscountService discountService,
             IDiscountSupportedModelFactory discountSupportedModelFactory,
             ILocalizationService localizationService,
@@ -83,7 +85,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// <param name="searchModel">Category product search model</param>
         /// <param name="category">Category</param>
         /// <returns>Category product search model</returns>
-        protected virtual CategoryProductSearchModel PrepareCategoryProductSearchModel(CategoryProductSearchModel searchModel, Category category)
+        protected virtual BlogCategoryBlogPostSearchModel PrepareCategoryProductSearchModel(BlogCategoryBlogPostSearchModel searchModel, BlogCategory category)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -111,7 +113,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the category search model
         /// </returns>
-        public virtual async Task<CategorySearchModel> PrepareCategorySearchModelAsync(CategorySearchModel searchModel)
+        public virtual async Task<BlogCategorySearchModel> PrepareCategorySearchModelAsync(BlogCategorySearchModel searchModel)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -125,17 +127,17 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.AvailablePublishedOptions.Add(new SelectListItem
             {
                 Value = "0",
-                Text = await _localizationService.GetResourceAsync("Admin.Catalog.Categories.List.SearchPublished.All")
+                Text = await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.List.SearchPublished.All")
             });
             searchModel.AvailablePublishedOptions.Add(new SelectListItem
             {
                 Value = "1",
-                Text = await _localizationService.GetResourceAsync("Admin.Catalog.Categories.List.SearchPublished.PublishedOnly")
+                Text = await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.List.SearchPublished.PublishedOnly")
             });
             searchModel.AvailablePublishedOptions.Add(new SelectListItem
             {
                 Value = "2",
-                Text = await _localizationService.GetResourceAsync("Admin.Catalog.Categories.List.SearchPublished.UnpublishedOnly")
+                Text = await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.List.SearchPublished.UnpublishedOnly")
             });
 
             //prepare page parameters
@@ -152,7 +154,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the category list model
         /// </returns>
-        public virtual async Task<CategoryListModel> PrepareCategoryListModelAsync(CategorySearchModel searchModel)
+        public virtual async Task<BlogCategoryListModel> PrepareCategoryListModelAsync(BlogCategorySearchModel searchModel)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -164,12 +166,12 @@ namespace Nop.Web.Areas.Admin.Factories
                 overridePublished: searchModel.SearchPublishedId == 0 ? null : (bool?)(searchModel.SearchPublishedId == 1));
 
             //prepare grid model
-            var model = await new CategoryListModel().PrepareToGridAsync(searchModel, categories, () =>
+            var model = await new BlogCategoryListModel().PrepareToGridAsync(searchModel, categories, () =>
             {
                 return categories.SelectAwait(async category =>
                 {
                     //fill in model values from the entity
-                    var categoryModel = category.ToModel<CategoryModel>();
+                    var categoryModel = category.ToModel<BlogCategoryModel>();
 
                     //fill in additional values (not existing in the entity)
                     categoryModel.Breadcrumb = await _categoryService.GetFormattedBreadCrumbAsync(category);
@@ -192,7 +194,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the category model
         /// </returns>
-        public virtual async Task<CategoryModel> PrepareCategoryModelAsync(CategoryModel model, Category category, bool excludeProperties = false)
+        public virtual async Task<BlogCategoryModel> PrepareCategoryModelAsync(BlogCategoryModel model, BlogCategory category, bool excludeProperties = false)
         {
             Func<CategoryLocalizedModel, int, Task> localizedModelConfiguration = null;
 
@@ -201,7 +203,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 //fill in model values from the entity
                 if (model == null)
                 {
-                    model = category.ToModel<CategoryModel>();
+                    model = category.ToModel<BlogCategoryModel>();
                     model.SeName = await _urlRecordService.GetSeNameAsync(category, 0, true, false);
                 }
 
@@ -244,8 +246,8 @@ namespace Nop.Web.Areas.Admin.Factories
             await _baseAdminModelFactory.PrepareCategoryTemplatesAsync(model.AvailableCategoryTemplates, false);
 
             //prepare available parent categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories,false,
-                defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Categories.Fields.Parent.None") );
+            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories,
+                defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.Fields.Parent.None"));
 
             //prepare model discounts
             var availableDiscounts = await _discountService.GetAllDiscountsAsync(DiscountType.AssignedToCategories, showHidden: true, isActive: null);
@@ -269,7 +271,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the category product list model
         /// </returns>
-        public virtual async Task<CategoryProductListModel> PrepareCategoryProductListModelAsync(CategoryProductSearchModel searchModel, Category category)
+        public virtual async Task<BlogCategoryBlogPostListModel> PrepareCategoryProductListModelAsync(BlogCategoryBlogPostSearchModel searchModel, BlogCategory category)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -283,15 +285,15 @@ namespace Nop.Web.Areas.Admin.Factories
                 pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
             //prepare grid model
-            var model = await new CategoryProductListModel().PrepareToGridAsync(searchModel, productCategories, () =>
+            var model = await new BlogCategoryBlogPostListModel().PrepareToGridAsync(searchModel, productCategories, () =>
             {
                 return productCategories.SelectAwait(async productCategory =>
                 {
                     //fill in model values from the entity
-                    var categoryProductModel = productCategory.ToModel<CategoryProductModel>();
+                    var categoryProductModel = productCategory.ToModel<BlogCategoryBlogPostModel>();
 
                     //fill in additional values (not existing in the entity)
-                    categoryProductModel.ProductName = (await _productService.GetProductByIdAsync(productCategory.ProductId))?.Name;
+                    categoryProductModel.BlogName = (await _productService.GetProductByIdAsync(productCategory.BlogId))?.Name;
 
                     return categoryProductModel;
                 });
@@ -314,7 +316,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 throw new ArgumentNullException(nameof(searchModel));
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -333,6 +335,7 @@ namespace Nop.Web.Areas.Admin.Factories
 
             return searchModel;
         }
+        
 
         /// <summary>
         /// Prepare paged product list model to add to the category

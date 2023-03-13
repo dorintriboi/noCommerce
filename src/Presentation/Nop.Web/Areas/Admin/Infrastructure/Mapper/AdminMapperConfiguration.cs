@@ -433,6 +433,12 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Mapper
             CreateMap<CategoryProductModel, ProductCategory>()
                 .ForMember(entity => entity.CategoryId, options => options.Ignore())
                 .ForMember(entity => entity.ProductId, options => options.Ignore());
+            
+            CreateMap<BlogCategoryBlogPost, BlogCategoryBlogPostModel>()
+                .ForMember(model => model.BlogName, options => options.Ignore());
+            CreateMap<BlogCategoryBlogPostModel, BlogCategoryBlogPost>()
+                .ForMember(entity => entity.CategoryId, options => options.Ignore())
+                .ForMember(entity => entity.BlogId, options => options.Ignore());
 
             CreateMap<Category, CategoryModel>()
                 .ForMember(model => model.AvailableCategories, options => options.Ignore())
@@ -445,9 +451,24 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Mapper
                 .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
                 .ForMember(entity => entity.Deleted, options => options.Ignore())
                 .ForMember(entity => entity.UpdatedOnUtc, options => options.Ignore());
+            
+            CreateMap<BlogCategory, BlogCategoryModel>()
+                .ForMember(model => model.AvailableCategories, options => options.Ignore())
+                .ForMember(model => model.AvailableCategoryTemplates, options => options.Ignore())
+                .ForMember(model => model.Breadcrumb, options => options.Ignore())
+                .ForMember(model => model.CategoryProductSearchModel, options => options.Ignore())
+                .ForMember(model => model.SeName, options => options.Ignore())
+                .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore());
+            CreateMap<BlogCategoryModel, BlogCategory>()
+                .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
+                .ForMember(entity => entity.Deleted, options => options.Ignore())
+                .ForMember(entity => entity.UpdatedOnUtc, options => options.Ignore());
 
             CreateMap<CategoryTemplate, CategoryTemplateModel>();
             CreateMap<CategoryTemplateModel, CategoryTemplate>();
+            
+            CreateMap<BlogCategoryTemplate, BlogCategoryTemplateModel>();
+            CreateMap<BlogCategoryTemplateModel, BlogCategoryTemplate>();
 
             CreateMap<ProductManufacturer, ManufacturerProductModel>()
                 .ForMember(model => model.ProductName, options => options.Ignore());
@@ -975,6 +996,10 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Mapper
                 .ForMember(entity => entity.CustomOrderNumber, options => options.Ignore());
 
             CreateMap<Category, DiscountCategoryModel>()
+                .ForMember(entity => entity.CategoryName, options => options.Ignore())
+                .ForMember(entity => entity.CategoryId, options => options.Ignore());
+            
+            CreateMap<BlogCategory, DiscountCategoryModel>()
                 .ForMember(entity => entity.CategoryName, options => options.Ignore())
                 .ForMember(entity => entity.CategoryId, options => options.Ignore());
 

@@ -34,11 +34,11 @@ namespace Nop.Web.Areas.Admin.Factories
     /// <summary>
     /// Represents the implementation of the base model factory that implements a most common admin model factories methods
     /// </summary>
-    public partial class BaseAdminModelFactory : IBaseAdminModelFactory
+    public partial class BlogBaseAdminModelFactory : IBlogBaseAdminModelFactory
     {
         #region Fields
-        private readonly ICategoryService _categoryService;
-        private readonly ICategoryTemplateService _categoryTemplateService;
+        private readonly IBlogCategoryService _categoryService;
+        private readonly IBlogCategoryTemplateService _categoryTemplateService;
         private readonly ICountryService _countryService;
         private readonly ICurrencyService _currencyService;
         private readonly ICustomerActivityService _customerActivityService;
@@ -65,9 +65,9 @@ namespace Nop.Web.Areas.Admin.Factories
 
         #region Ctor
 
-        public BaseAdminModelFactory(
-            ICategoryService categoryService,
-            ICategoryTemplateService categoryTemplateService,
+        public BlogBaseAdminModelFactory(
+            IBlogCategoryService categoryService,
+            IBlogCategoryTemplateService categoryTemplateService,
             ICountryService countryService,
             ICurrencyService currencyService,
             ICustomerActivityService customerActivityService,
@@ -152,7 +152,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// </returns>
         protected virtual async Task<List<SelectListItem>> GetCategoryListAsync()
         {
-            var listItems = await _staticCacheManager.GetAsync(NopModelCacheDefaults.CategoriesListKey, async () =>
+            var listItems = await _staticCacheManager.GetAsync(NopModelCacheDefaults.BlogCategoriesListKey, async () =>
             {
                 var categories = await _categoryService.GetAllCategoriesAsync(showHidden: true);
                 return await categories.SelectAwait(async c => new SelectListItem

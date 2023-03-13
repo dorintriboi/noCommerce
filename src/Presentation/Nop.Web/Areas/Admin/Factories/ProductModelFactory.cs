@@ -712,7 +712,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.LicenseCheckModel = licenseCheckModel;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1034,7 +1034,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1152,7 +1152,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1275,7 +1275,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1393,7 +1393,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -2293,7 +2293,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);

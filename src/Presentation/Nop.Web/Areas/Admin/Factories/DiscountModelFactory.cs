@@ -500,7 +500,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 throw new ArgumentNullException(nameof(searchModel));
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);

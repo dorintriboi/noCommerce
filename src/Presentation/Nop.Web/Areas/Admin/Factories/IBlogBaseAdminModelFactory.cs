@@ -8,7 +8,7 @@ namespace Nop.Web.Areas.Admin.Factories
     /// <summary>
     /// Represents the base model factory that implements a most common admin model factories methods
     /// </summary>
-    public partial interface IBaseAdminModelFactory
+    public partial interface IBlogBaseAdminModelFactory
     {
         /// <summary>
         /// Prepare available activity log types

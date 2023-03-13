@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Infrastructure;
+using Nop.Services.Catalog;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Helpers;
 using Nop.Web.Framework.Factories;
@@ -32,6 +33,7 @@ namespace Nop.Web.Infrastructure
 
             //admin factories
             services.AddScoped<IBaseAdminModelFactory, BaseAdminModelFactory>();
+            services.AddScoped<IBlogBaseAdminModelFactory, BlogBaseAdminModelFactory>();
             services.AddScoped<IActivityLogModelFactory, ActivityLogModelFactory>();
             services.AddScoped<IAddressModelFactory, AddressModelFactory>();
             services.AddScoped<IAddressAttributeModelFactory, AddressAttributeModelFactory>();
@@ -39,7 +41,10 @@ namespace Nop.Web.Infrastructure
             services.AddScoped<IBlogModelFactory, BlogModelFactory>();
             services.AddScoped<ICampaignModelFactory, CampaignModelFactory>();
             services.AddScoped<ICategoryModelFactory, CategoryModelFactory>();
+            services.AddScoped<IBlogCategoryModelFactory, BlogCategoryModelFactory>();
             services.AddScoped<ICheckoutAttributeModelFactory, CheckoutAttributeModelFactory>();
+            services.AddScoped<IBlogCategoryService, BlogCategoryService>();
+            services.AddScoped<IBlogCategoryTemplateService, BlogCategoryTemplateService>();
             services.AddScoped<ICommonModelFactory, CommonModelFactory>();
             services.AddScoped<ICountryModelFactory, CountryModelFactory>();
             services.AddScoped<ICurrencyModelFactory, CurrencyModelFactory>();
