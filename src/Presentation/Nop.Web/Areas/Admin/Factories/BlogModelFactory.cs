@@ -30,7 +30,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Fields
 
         private readonly CatalogSettings _catalogSettings;
-        private readonly IBaseAdminModelFactory _baseAdminModelFactory;
+        private readonly IBlogBaseAdminModelFactory _baseAdminModelFactory;
         private readonly IBlogService _blogService;
         private readonly ICustomerService _customerService;
         private readonly IDateTimeHelper _dateTimeHelper;
@@ -46,7 +46,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Ctor
 
         public BlogModelFactory(CatalogSettings catalogSettings,
-            IBaseAdminModelFactory baseAdminModelFactory,
+            IBlogBaseAdminModelFactory baseAdminModelFactory,
             IBlogService blogService,
             ICustomerService customerService,
             IDateTimeHelper dateTimeHelper,
@@ -190,12 +190,38 @@ namespace Nop.Web.Areas.Admin.Factories
             blogTagsSb.Append(']');
 
             model.InitialBlogTags = blogTagsSb.ToString();
+            
+            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories, false);
+            foreach (var categoryItem in model.AvailableCategories)
+            {
+                categoryItem.Selected = int.TryParse(categoryItem.Value, out var categoryId)
+                                        && model.SelectedCategoryIds.Contains(categoryId);
+            }
 
             //prepare available languages
             await _baseAdminModelFactory.PrepareLanguagesAsync(model.AvailableLanguages, false);
 
             //prepare available stores
             await _storeMappingSupportedModelFactory.PrepareModelStoresAsync(model, blogPost, excludeProperties);
+            
+            /*
+            var productTags = await _blogTagService.GetAllProductTagsAsync();
+            var productTagsSb = new StringBuilder();
+            productTagsSb.Append("var initialProductTags = [");
+            for (var i = 0; i < productTags.Count; i++)
+            {
+                var tag = productTags[i];
+                productTagsSb.Append('\'');
+                productTagsSb.Append(JavaScriptEncoder.Default.Encode(tag.Name));
+                productTagsSb.Append('\'');
+                if (i != productTags.Count - 1)
+                    productTagsSb.Append(',');
+            }
+            productTagsSb.Append(']');
+
+            model.InitialProductTags = productTagsSb.ToString();
+            */
+
 
             return model;
         }

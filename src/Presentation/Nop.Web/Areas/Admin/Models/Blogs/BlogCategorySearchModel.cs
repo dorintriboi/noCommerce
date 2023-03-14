@@ -22,15 +22,15 @@ namespace Nop.Web.Areas.Admin.Models.Blogs
 
         #region Properties
 
-        [NopResourceDisplayName("Admin.Catalog.Categories.List.SearchCategoryName")]
-        public string SearchCategoryName { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.BlogCategories.List.SearchCategoryName")]
+        public string SearchBlogCategoryName { get; set; }
 
-        [NopResourceDisplayName("Admin.Catalog.Categories.List.SearchPublished")]
+        [NopResourceDisplayName("Admin.Catalog.BlogCategories.List.SearchPublished")]
         public int SearchPublishedId { get; set; }
 
         public IList<SelectListItem> AvailablePublishedOptions { get; set; }
 
-        [NopResourceDisplayName("Admin.Catalog.Categories.List.SearchStore")]
+        [NopResourceDisplayName("Admin.Catalog.BlogCategories.List.SearchStore")]
         public int SearchStoreId { get; set; }
 
         public IList<SelectListItem> AvailableStores { get; set; }

@@ -31,6 +31,9 @@ namespace Nop.Web.Infrastructure.Cache
         /// </remarks>
         public static CacheKey CategoryAllModelKey => new("Nop.pres.category.all-{0}-{1}-{2}", CategoryAllPrefixCacheKey);
         public static string CategoryAllPrefixCacheKey => "Nop.pres.category.all";
+        
+        public static CacheKey BlogCategoryAllModelKey => new("Nop.pres.blogcategory.all-{0}-{1}-{2}", BlogCategoryAllPrefixCacheKey);
+        public static string BlogCategoryAllPrefixCacheKey => "Nop.pres.blogcategory.all";
 
         /// <summary>
         /// Key for caching of categories displayed on home page
@@ -44,6 +47,8 @@ namespace Nop.Web.Infrastructure.Cache
         /// </remarks>
         public static CacheKey CategoryHomepageKey => new("Nop.pres.category.homepage-{0}-{1}-{2}-{3}-{4}", CategoryHomepagePrefixCacheKey);
         public static string CategoryHomepagePrefixCacheKey => "Nop.pres.category.homepage";
+        public static CacheKey BlogCategoryHomepageKey => new("Nop.pres.blogcategory.homepage-{0}-{1}-{2}-{3}-{4}", BlogCategoryHomepagePrefixCacheKey);
+        public static string BlogCategoryHomepagePrefixCacheKey => "Nop.pres.blogcategory.homepage";
 
         /// <summary>
         /// Key for Xml document of CategorySimpleModels caching
@@ -55,6 +60,9 @@ namespace Nop.Web.Infrastructure.Cache
         /// </remarks>
         public static CacheKey CategoryXmlAllModelKey => new("Nop.pres.categoryXml.all-{0}-{1}-{2}", CategoryXmlAllPrefixCacheKey);
         public static string CategoryXmlAllPrefixCacheKey => "Nop.pres.categoryXml.all";
+        
+        public static CacheKey BlogCategoryXmlAllModelKey => new("Nop.pres.blogcategoryXml.all-{0}-{1}-{2}", BlogCategoryXmlAllPrefixCacheKey);
+        public static string BlogCategoryXmlAllPrefixCacheKey => "Nop.pres.blogcategoryXml.all";
 
         /// <summary>
         /// Key for bestsellers identifiers displayed on the home page
@@ -154,6 +162,9 @@ namespace Nop.Web.Infrastructure.Cache
         public static CacheKey CategoryPictureModelKey => new("Nop.pres.category.picture-{0}-{1}-{2}-{3}-{4}-{5}", CategoryPicturePrefixCacheKey, CategoryPicturePrefixCacheKeyById);
         public static string CategoryPicturePrefixCacheKey => "Nop.pres.category.picture";
         public static string CategoryPicturePrefixCacheKeyById => "Nop.pres.category.picture-{0}-";
+        public static CacheKey BlogCategoryPictureModelKey => new("Nop.pres.blogcategory.picture-{0}-{1}-{2}-{3}-{4}-{5}", BlogCategoryPicturePrefixCacheKey, BlogCategoryPicturePrefixCacheKeyById);
+        public static string BlogCategoryPicturePrefixCacheKey => "Nop.pres.blogcategory.picture";
+        public static string BlogCategoryPicturePrefixCacheKeyById => "Nop.pres.blogcategory.picture-{0}-";
 
         /// <summary>
         /// Key for manufacturer picture caching

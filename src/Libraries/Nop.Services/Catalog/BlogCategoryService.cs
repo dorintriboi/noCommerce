@@ -210,7 +210,7 @@ namespace Nop.Services.Catalog
         /// </returns>
         public virtual async Task<IList<BlogCategory>> GetAllCategoriesAsync(int storeId = 0, bool showHidden = false)
         {
-            var key = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoriesAllCacheKey,
+            var key = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoriesAllCacheKey,
                 storeId,
                 await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
                 showHidden);
@@ -305,7 +305,7 @@ namespace Nop.Services.Catalog
                 query = query.Where(c => !c.Deleted && c.ParentCategoryId == parentCategoryId);
 
                 return query.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Id);
-            }, cache => cache.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoriesByParentCategoryCacheKey,
+            }, cache => cache.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoriesByParentCategoryCacheKey,
                 parentCategoryId, showHidden, customerRoleIds, store));
 
             return categories;
@@ -329,12 +329,12 @@ namespace Nop.Services.Catalog
                              !c.Deleted &&
                              c.ShowOnHomepage
                        select c;
-            }, cache => cache.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoriesHomepageCacheKey));
+            }, cache => cache.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoriesHomepageCacheKey));
 
             if (showHidden)
                 return categories;
 
-            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoriesHomepageWithoutHiddenCacheKey,
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoriesHomepageWithoutHiddenCacheKey,
                 await _storeContext.GetCurrentStoreAsync(), await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()));
 
             var result = await _staticCacheManager.GetAsync(cacheKey, async () =>
@@ -362,7 +362,7 @@ namespace Nop.Services.Catalog
                 throw new ArgumentNullException(nameof(discount));
 
             var store = await _storeContext.GetCurrentStoreAsync();
-            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopDiscountDefaults.CategoryIdsByDiscountCacheKey,
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopDiscountDefaults.BlogCategoryIdsByDiscountCacheKey,
                 discount,
                 await _customerService.GetCustomerRoleIdsAsync(customer),
                 store);
@@ -399,7 +399,7 @@ namespace Nop.Services.Catalog
         /// </returns>
         public virtual async Task<IList<int>> GetChildCategoryIdsAsync(int parentCategoryId, int storeId = 0, bool showHidden = false)
         {
-            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoriesChildIdsCacheKey,
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoriesChildIdsCacheKey,
                 parentCategoryId,
                 await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
                 storeId,
@@ -411,7 +411,7 @@ namespace Nop.Services.Catalog
                 //there's no need to invoke "GetAllCategoriesByParentCategoryId" multiple times (extra SQL commands) to load childs
                 //so we load all categories at once (we know they are cached) and process them server-side
                 var lookup = await _staticCacheManager.GetAsync(
-                    _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.ChildCategoryIdLookupCacheKey, storeId, showHidden),
+                    _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.ChildBlogCategoryIdLookupCacheKey, storeId, showHidden),
                     async () => (await GetAllCategoriesAsync(storeId: storeId, showHidden: showHidden))
                         .ToGroupedDictionary(c => c.ParentCategoryId, x => x.Id));
 
@@ -767,7 +767,7 @@ namespace Nop.Services.Catalog
             if (category == null)
                 throw new ArgumentNullException(nameof(category));
 
-            var breadcrumbCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.CategoryBreadcrumbCacheKey,
+            var breadcrumbCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoryBreadcrumbCacheKey,
                 category,
                 await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
                 await _storeContext.GetCurrentStoreAsync(),

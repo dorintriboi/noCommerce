@@ -19,6 +19,8 @@ namespace Nop.Web.Areas.Admin.Models.Blogs
             AvailableLanguages = new List<SelectListItem>();
             SelectedStoreIds = new List<int>();
             AvailableStores = new List<SelectListItem>();
+            SelectedCategoryIds =new List<int>();
+            AvailableCategories = new List<SelectListItem>();
         }
 
         #endregion
@@ -56,6 +58,10 @@ namespace Nop.Web.Areas.Admin.Models.Blogs
         public int ApprovedComments { get; set; }
 
         public int NotApprovedComments { get; set; }
+        
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.BlogCategories")]
+        public IList<int> SelectedCategoryIds { get; set; }
+        public IList<SelectListItem> AvailableCategories { get; set; }
 
         [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.StartDate")]
         [UIHint("DateTimeNullable")]

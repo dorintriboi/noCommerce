@@ -15,7 +15,7 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Cache
         public static CacheKey CategoriesListKey => new("Nop.pres.admin.categories.list");
         
         
-        public static CacheKey BlogCategoriesListKey => new("Nop.pres.admin.categories.list");
+        public static CacheKey BlogCategoriesListKey => new("Nop.pres.admin.blogcategories.list");
         
 
         /// <summary>

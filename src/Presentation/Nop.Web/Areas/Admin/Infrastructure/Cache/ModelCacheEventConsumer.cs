@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Nop.Core.Caching;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Configuration;
 using Nop.Core.Domain.Vendors;
@@ -19,6 +20,9 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Cache
         IConsumer<EntityInsertedEvent<Category>>,
         IConsumer<EntityUpdatedEvent<Category>>,
         IConsumer<EntityDeletedEvent<Category>>,
+        IConsumer<EntityInsertedEvent<BlogCategory>>,
+        IConsumer<EntityUpdatedEvent<BlogCategory>>,
+        IConsumer<EntityDeletedEvent<BlogCategory>>,
         //manufacturers
         IConsumer<EntityInsertedEvent<Manufacturer>>,
         IConsumer<EntityUpdatedEvent<Manufacturer>>,
@@ -116,5 +120,20 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Cache
         }
 
         #endregion
+
+        public async Task HandleEventAsync(EntityInsertedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveAsync(NopModelCacheDefaults.BlogCategoriesListKey);
+        }
+
+        public async Task HandleEventAsync(EntityUpdatedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveAsync(NopModelCacheDefaults.BlogCategoriesListKey);
+        }
+
+        public async Task HandleEventAsync(EntityDeletedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveAsync(NopModelCacheDefaults.BlogCategoriesListKey);
+        }
     }
 }

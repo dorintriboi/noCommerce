@@ -57,6 +57,7 @@ namespace Nop.Services.Discounts
         /// {2} : current store ID
         /// </remarks>
         public static CacheKey CategoryIdsByDiscountCacheKey => new("Nop.discount.categoryids.bydiscount.{0}-{1}-{2}", CategoryIdsByDiscountPrefix, CategoryIdsPrefix);
+        public static CacheKey BlogCategoryIdsByDiscountCacheKey => new("Nop.discount.blogcategoryids.bydiscount.{0}-{1}-{2}", BlogCategoryIdsByDiscountPrefix, BlogCategoryIdsPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
@@ -65,11 +66,13 @@ namespace Nop.Services.Discounts
         /// {0} : discount id
         /// </remarks>
         public static string CategoryIdsByDiscountPrefix => "Nop.discount.categoryids.bydiscount.{0}";
+        public static string BlogCategoryIdsByDiscountPrefix => "Nop.discount.blogcategoryids.bydiscount.{0}";
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string CategoryIdsPrefix => "Nop.discount.categoryids.bydiscount.";
+        public static string BlogCategoryIdsPrefix => "Nop.discount.blogcategoryids.bydiscount.";
 
         /// <summary>
         /// Key for manufacturer IDs of a discount

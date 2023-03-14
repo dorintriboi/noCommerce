@@ -244,8 +244,8 @@ namespace Nop.Web.Areas.Admin.Factories
             await _baseAdminModelFactory.PrepareCategoryTemplatesAsync(model.AvailableCategoryTemplates, false);
 
             //prepare available parent categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories,false,
-                defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Categories.Fields.Parent.None") );
+            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories,
+                defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Categories.Fields.Parent.None"));
 
             //prepare model discounts
             var availableDiscounts = await _discountService.GetAllDiscountsAsync(DiscountType.AssignedToCategories, showHidden: true, isActive: null);

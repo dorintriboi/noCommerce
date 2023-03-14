@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
-using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Discounts;
-using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Customers;
 using Nop.Services.Discounts;
@@ -284,10 +282,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 await SaveStoreMappingsAsync(category, model);
 
                 //activity log
-                await _customerActivityService.InsertActivityAsync("AddNewCategory",
-                    string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewCategory"), category.Name), category);
+                await _customerActivityService.InsertActivityAsync("AddNewBlogCategory",
+                    string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewBlogCategory"), category.Name), category);
 
-                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Catalog.Categories.Added"));
+                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.Added"));
 
                 if (!continueEditing)
                     return RedirectToAction("List");
@@ -336,9 +334,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //if parent category changes, we need to clear cache for previous parent category
                 if (category.ParentCategoryId != model.ParentCategoryId)
                 {
-                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.CategoriesByParentCategoryPrefix, category.ParentCategoryId);
-                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.CategoriesChildIdsPrefix, category.ParentCategoryId);
-                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.ChildCategoryIdLookupPrefix);
+                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesByParentCategoryPrefix, category.ParentCategoryId);
+                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesChildIdsPrefix, category.ParentCategoryId);
+                    await _staticCacheManager.RemoveByPrefixAsync(NopCatalogDefaults.ChildBlogCategoryIdLookupPrefix);
                 }
 
                 category = model.ToEntity(category);
