@@ -67,7 +67,7 @@ namespace Nop.Web.Areas.Admin.Models.Blogs
         public int ParentCategoryId { get; set; }
 
         [UIHint("Picture")]
-        [NopResourceDisplayName("Admin.Catalog.vCategories.Fields.Picture")]
+        [NopResourceDisplayName("Admin.Catalog.BlogCategories.Fields.Picture")]
         public int PictureId { get; set; }
 
         [NopResourceDisplayName("Admin.Catalog.BlogCategories.Fields.PageSize")]

@@ -391,7 +391,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 await _customerActivityService.InsertActivityAsync("EditCategory",
                     string.Format(await _localizationService.GetResourceAsync("ActivityLog.EditCategory"), category.Name), category);
 
-                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Catalog.Categories.Updated"));
+                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Catalog.BlogCategories.Updated"));
 
                 if (!continueEditing)
                     return RedirectToAction("List");

@@ -712,7 +712,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.LicenseCheckModel = licenseCheckModel;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -974,7 +974,7 @@ namespace Nop.Web.Areas.Admin.Factories
             model.AvailableBasepriceBaseUnits = availableMeasureWeights;
 
             //prepare model categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories, false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories);
             foreach (var categoryItem in model.AvailableCategories)
             {
                 categoryItem.Selected = int.TryParse(categoryItem.Value, out var categoryId)
@@ -982,7 +982,7 @@ namespace Nop.Web.Areas.Admin.Factories
             }
 
             //prepare model manufacturers
-            await _baseAdminModelFactory.PrepareManufacturersAsync(model.AvailableManufacturers, false);
+            await _baseAdminModelFactory.PrepareManufacturersAsync(model.AvailableManufacturers );
             foreach (var manufacturerItem in model.AvailableManufacturers)
             {
                 manufacturerItem.Selected = int.TryParse(manufacturerItem.Value, out var manufacturerId)
@@ -1034,7 +1034,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1152,7 +1152,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1275,7 +1275,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -1393,7 +1393,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);
@@ -2293,7 +2293,7 @@ namespace Nop.Web.Areas.Admin.Factories
             searchModel.IsLoggedInAsVendor = await _workContext.GetCurrentVendorAsync() != null;
 
             //prepare available categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories,false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(searchModel.AvailableCategories);
 
             //prepare available manufacturers
             await _baseAdminModelFactory.PrepareManufacturersAsync(searchModel.AvailableManufacturers);

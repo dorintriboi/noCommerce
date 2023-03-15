@@ -2338,14 +2338,17 @@
     <LocaleResource Name="Admin.Catalog.BlogCategories">
         <Value>Blog Categories</Value>
     </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.IsFeaturedBlog">
+        <Value>Is featured blog?</Value>
+    </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Added">
         <Value>The new category has been added successfully.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.AddNew">
-        <Value>Add a new category</Value>
+        <Value>Add a new blog category</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.BackToList">
-        <Value>back to category list</Value>
+        <Value>back to blog category list</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Deleted">
         <Value>The category has been deleted successfully.</Value>
@@ -2369,7 +2372,7 @@
         <Value>Whether customers are allowed to select the page size from a predefined list of options.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.CategoryTemplate">
-        <Value>Category template</Value>
+        <Value>Blog category template</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.CategoryTemplate.Hint">
         <Value>Choose a category template. This template defines how this category (and its products) will be displayed.</Value>
@@ -2525,16 +2528,16 @@
         <Value>Categories have been imported successfully.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Info">
-        <Value>Category info</Value>
+        <Value>Blog category info</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.List.ImportFromExcelTip">
         <Value>Imported categories are distinguished by ID. If the ID already exists, then its corresponding category will be updated. You should not specify ID (leave 0) for new categories.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchCategoryName">
-        <Value>BlogCategory name</Value>
+        <Value>Blog category name</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchCategoryName.Hint">
-        <Value>A category name.</Value>
+        <Value>A blog category name.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished">
         <Value>Published</Value>
@@ -2561,22 +2564,25 @@
         <Value>Mappings</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs">
-        <Value>Blogs</Value>
+        <Value>Blogs categories</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Products.AddNew">
-        <Value>Add a new blog</Value>
+        <Value>Add a new blog category</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Products">
+        <Value>Add a new blog category</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.DisplayOrder">
         <Value>Display order</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.IsFeaturedBlog">
-        <Value>Is featured blog?</Value>
+        <Value>Is featured blog category?</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.Blog">
         <Value>Blog</Value>
     </LocaleResource>
-    <LocaleResource Name="Admin.Catalog.BlogCategories.Products.SaveBeforeEdit">
-        <Value>You need to save the category before you can add products for this category page.</Value>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.SaveBeforeEdit">
+        <Value>You need to save the category before you can add blogs for this category page.</Value>
     </LocaleResource>
     <LocaleResource Name="Admin.Catalog.BlogCategories.Updated">
         <Value>The category has been updated successfully.</Value>
@@ -3149,6 +3155,15 @@
   <LocaleResource Name="Admin.Catalog.Products.Fields.Categories.NoCategoriesAvailable">
     <Value>No categories available.</Value>
   </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories">
+        <Value>Blog categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories.Hint">
+        <Value>Choose categories. You can manage blog categories by selecting Content management &gt; Blog categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories.NoCategoriesAvailable">
+        <Value>No categories available.</Value>
+    </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.CustomerEntersPrice">
     <Value>Customer enters price</Value>
   </LocaleResource>

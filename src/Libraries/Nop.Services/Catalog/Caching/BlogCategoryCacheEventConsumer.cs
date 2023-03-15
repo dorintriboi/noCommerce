@@ -19,14 +19,13 @@ namespace Nop.Services.Catalog.Caching
         /// <returns>A task that represents the asynchronous operation</returns>
         protected override async Task ClearCacheAsync(BlogCategory entity, EntityEventType entityEventType)
         {
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoriesByParentCategoryPrefix, entity);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoriesByParentCategoryPrefix, entity.ParentCategoryId);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoriesChildIdsPrefix, entity);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoriesChildIdsPrefix, entity.ParentCategoryId);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoriesHomepagePrefix);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoryBreadcrumbPrefix);
-            await RemoveByPrefixAsync(NopCatalogDefaults.CategoryProductsNumberPrefix);
-            await RemoveByPrefixAsync(NopDiscountDefaults.CategoryIdsPrefix);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesByParentCategoryPrefix, entity);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesByParentCategoryPrefix, entity.ParentCategoryId);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesChildIdsPrefix, entity);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesChildIdsPrefix, entity.ParentCategoryId);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoriesHomepagePrefix);
+            await RemoveByPrefixAsync(NopCatalogDefaults.BlogCategoryBreadcrumbPrefix);
+            await RemoveByPrefixAsync(NopDiscountDefaults.BlogCategoryIdsPrefix);
 
             if (entityEventType == EntityEventType.Delete)
                 await RemoveAsync(NopCatalogDefaults.SpecificationAttributeOptionsByCategoryCacheKey, entity);

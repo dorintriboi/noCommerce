@@ -135,7 +135,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
 
             //prepare model
-            var model = await _blogModelFactory.PrepareBlogPostModelAsync(new BlogPostModel(), null);
+            var model = await _blogModelFactory.PrepareBlogPostModelAsync(new BlogPostModel(), null, true);
 
             return View(model);
         }
@@ -162,6 +162,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 //Stores
                 await SaveStoreMappingsAsync(blogPost, model);
+                
                 await SaveCategoryMappingsAsync(blogPost, model);
 
                 _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts.Added"));
@@ -249,6 +250,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 //Stores
                 await SaveStoreMappingsAsync(blogPost, model);
+                await SaveCategoryMappingsAsync(blogPost, model);
 
                 _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts.Updated"));
 

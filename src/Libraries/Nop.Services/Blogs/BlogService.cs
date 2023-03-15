@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqToDB;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
@@ -103,12 +104,13 @@ namespace Nop.Services.Blogs
                 if (!showHidden)
                 {
                     query = query.Where(b => !b.StartDateUtc.HasValue || b.StartDateUtc <= DateTime.UtcNow);
-                    query = query.Where(b => !b.EndDateUtc.HasValue || b.EndDateUtc >= DateTime.UtcNow);
+                    query = query.Where(b => !b.EndDateUtc.HasValue || b.EndDateUtc >= DateTime.UtcNow );
 
                     //apply store mapping constraints
                     query = await _storeMappingService.ApplyStoreMapping(query, storeId);
                 }
 
+                query = query.Where(b => !b.Deleted);
                 query = query.OrderByDescending(b => b.StartDateUtc ?? b.CreatedOnUtc);
 
                 return query;
@@ -380,7 +382,7 @@ namespace Nop.Services.Blogs
 
             var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopBlogsDefaults.BlogCommentsNumberCacheKey, blogPost, storeId, isApproved);
 
-            return await _staticCacheManager.GetAsync(cacheKey, async () => await query.CountAsync());
+            return await _staticCacheManager.GetAsync(cacheKey, async () => await AsyncIQueryableExtensions.CountAsync(query));
         }
 
         /// <summary>

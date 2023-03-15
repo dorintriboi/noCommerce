@@ -8,6 +8,7 @@ using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Services.Blogs;
+using Nop.Services.Catalog;
 using Nop.Services.Customers;
 using Nop.Services.Helpers;
 using Nop.Services.Html;
@@ -28,7 +29,7 @@ namespace Nop.Web.Areas.Admin.Factories
     public partial class BlogModelFactory : IBlogModelFactory
     {
         #region Fields
-
+        private readonly IBlogCategoryService _categoryService;
         private readonly CatalogSettings _catalogSettings;
         private readonly IBlogBaseAdminModelFactory _baseAdminModelFactory;
         private readonly IBlogService _blogService;
@@ -55,8 +56,10 @@ namespace Nop.Web.Areas.Admin.Factories
             ILocalizationService localizationService,
             IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
             IStoreService storeService,
-            IUrlRecordService urlRecordService)
+            IUrlRecordService urlRecordService,
+            IBlogCategoryService categoryService)
         {
+            _categoryService = categoryService;
             _catalogSettings = catalogSettings;
             _baseAdminModelFactory = baseAdminModelFactory;
             _blogService = blogService;
@@ -189,8 +192,17 @@ namespace Nop.Web.Areas.Admin.Factories
             }
             blogTagsSb.Append(']');
 
+            
             model.InitialBlogTags = blogTagsSb.ToString();
             
+            if (model != null)
+            if (!excludeProperties)
+            {
+                model.SelectedCategoryIds =
+                    (await _categoryService.GetProductCategoriesByProductIdAsync(blogPost.Id, true))
+                    .Select(blogCategory => blogCategory.CategoryId).ToList();
+            }
+
             await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories, false);
             foreach (var categoryItem in model.AvailableCategories)
             {
