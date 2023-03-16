@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using LinqToDB;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
+using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Localization;
 using Nop.Data;
+using Nop.Services.Catalog;
+using Nop.Services.Localization;
+using Nop.Services.Security;
 using Nop.Services.Stores;
 
 namespace Nop.Services.Blogs
@@ -17,22 +23,59 @@ namespace Nop.Services.Blogs
     public partial class BlogService : IBlogService
     {
         #region Fields
-
+        private readonly CatalogSettings _catalogSettings;
+        private readonly IRepository<ProductAttributeCombination> _productAttributeCombinationRepository;
+        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
+        private readonly ISearchPluginManager _searchPluginManager;
+        private readonly ILanguageService _languageService;
         private readonly IRepository<BlogComment> _blogCommentRepository;
         private readonly IRepository<BlogPost> _blogPostRepository;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStoreMappingService _storeMappingService;
-
+        private readonly IWorkContext _workContext;
+        private readonly IRepository<BlogCategoryBlogPost> _productCategoryRepository;
+        private readonly IRepository<BlogCategory> _categoryRepository;
+        private readonly IRepository<ProductManufacturer> _productManufacturerRepository;
+        private readonly IRepository<Manufacturer> _manufacturerRepository;
+        private readonly IRepository<BlogCategoryBlogPostTagMapping> _productTagMappingRepository;
+        private readonly IRepository<ProductTag> _productTagRepository;
+        private readonly IRepository<ProductSpecificationAttribute> _productSpecificationAttributeRepository;
         #endregion
 
         #region Ctor
 
         public BlogService(
+            IRepository<ProductSpecificationAttribute> productSpecificationAttributeRepository,
+            IRepository<ProductTag> productTagRepository,
+            IRepository<BlogCategoryBlogPostTagMapping> productTagMappingRepository,
+            IRepository<Manufacturer> manufacturerRepository,
+            IRepository<BlogCategory> categoryRepository,
+            IRepository<BlogCategoryBlogPost> productCategoryRepository,
+            CatalogSettings catalogSettings,
+            IRepository<ProductAttributeCombination> productAttributeCombinationRepository,
+            IRepository<LocalizedProperty> localizedPropertyRepository,
+            ISearchPluginManager searchPluginManager,
+            ILanguageService languageService,
+            IWorkContext workContext,
             IRepository<BlogComment> blogCommentRepository,
             IRepository<BlogPost> blogPostRepository,
             IStaticCacheManager staticCacheManager,
+            IRepository<ProductManufacturer> productManufacturerRepository,
             IStoreMappingService storeMappingService)
         {
+            _productSpecificationAttributeRepository = productSpecificationAttributeRepository;
+            _productTagRepository = productTagRepository;
+            _productTagMappingRepository = productTagMappingRepository;
+            _manufacturerRepository = manufacturerRepository;
+            _productManufacturerRepository = productManufacturerRepository;
+            _categoryRepository = categoryRepository;
+            _productCategoryRepository = productCategoryRepository;
+            _catalogSettings = catalogSettings;
+            _productAttributeCombinationRepository = productAttributeCombinationRepository;
+            _localizedPropertyRepository = localizedPropertyRepository;
+            _searchPluginManager = searchPluginManager;
+            _languageService = languageService;
+            _workContext = workContext;
             _blogCommentRepository = blogCommentRepository;
             _blogPostRepository = blogPostRepository;
             _staticCacheManager = staticCacheManager;
@@ -66,6 +109,263 @@ namespace Nop.Services.Blogs
         public virtual async Task<BlogPost> GetBlogPostByIdAsync(int blogPostId)
         {
             return await _blogPostRepository.GetByIdAsync(blogPostId, cache => default);
+        }
+
+        public async Task<IList<BlogPost>> GetBlogsByIdsAsync(int[] blogIds)
+        {
+            return await _blogPostRepository.GetByIdsAsync(blogIds, cache => default, false);
+        }
+           public virtual async Task<IPagedList<BlogPost>> SearchBlogsAsync(
+               int pageIndex = 0,
+               int pageSize = int.MaxValue,
+               IList<int> categoryIds = null,
+               IList<int> manufacturerIds = null,
+               int storeId = 0,
+               int vendorId = 0,
+               int warehouseId = 0,
+               ProductType? productType = null,
+               bool visibleIndividuallyOnly = false,
+               bool excludeFeaturedProducts = false,
+               decimal? priceMin = null,
+               decimal? priceMax = null,
+               int productTagId = 0,
+               string keywords = null,
+               bool searchDescriptions = false,
+               bool searchManufacturerPartNumber = true,
+               bool searchSku = true,
+               bool searchProductTags = false,
+               int languageId = 0,
+               IList<SpecificationAttributeOption> filteredSpecOptions = null,
+               ProductSortingEnum orderBy = ProductSortingEnum.Position,
+               bool showHidden = false,
+               bool? overridePublished = null)
+        {
+            //some databases don't support int.MaxValue
+            if (pageSize == int.MaxValue)
+                pageSize = int.MaxValue - 1;
+
+            var productsQuery = _blogPostRepository.Table;
+            
+            if (!showHidden)
+            {
+                //apply store mapping constraints
+                productsQuery = await _storeMappingService.ApplyStoreMapping(productsQuery, storeId);
+
+                //apply ACL constraints
+                var customer = await _workContext.GetCurrentCustomerAsync();
+            }
+
+            productsQuery =
+                from p in productsQuery
+                where !p.Deleted select p;
+
+            if (!string.IsNullOrEmpty(keywords))
+            {
+                var langs = await _languageService.GetAllLanguagesAsync(showHidden: true);
+
+                //Set a flag which will to points need to search in localized properties. If showHidden doesn't set to true should be at least two published languages.
+                var searchLocalizedValue = languageId > 0 && langs.Count >= 2 && (showHidden || langs.Count(l => l.Published) >= 2);
+                IQueryable<int> productsByKeywords;
+
+                var customer = await _workContext.GetCurrentCustomerAsync();
+                var activeSearchProvider = await _searchPluginManager.LoadPrimaryPluginAsync(customer, storeId);
+
+                if (activeSearchProvider is not null)
+                {
+                    productsByKeywords = (await activeSearchProvider.SearchProductsAsync(keywords, searchLocalizedValue)).AsQueryable();
+                }
+                else
+                {
+                    productsByKeywords =
+                        from p in _blogPostRepository.Table
+                        where p.Title.Contains(keywords)
+                        select p.Id;
+
+                    if (searchLocalizedValue)
+                    {
+                        productsByKeywords = productsByKeywords.Union(
+                            from lp in _localizedPropertyRepository.Table
+                            let checkName = lp.LocaleKey == nameof(Product.Name) &&
+                                            lp.LocaleValue.Contains(keywords)
+                            let checkShortDesc = searchDescriptions &&
+                                            lp.LocaleKey == nameof(Product.ShortDescription) &&
+                                            lp.LocaleValue.Contains(keywords)
+                            where
+                                lp.LocaleKeyGroup == nameof(Product) && lp.LanguageId == languageId && (checkName || checkShortDesc)
+
+                            select lp.EntityId);
+                    }
+                }
+
+                //search by SKU for ProductAttributeCombination
+                if (searchSku)
+                {
+                    productsByKeywords = productsByKeywords.Union(
+                        from pac in _productAttributeCombinationRepository.Table
+                        where pac.Sku == keywords
+                        select pac.ProductId);
+                }
+
+                //search by category name if admin allows
+                if (_catalogSettings.AllowCustomersToSearchWithCategoryName)
+                {
+                    productsByKeywords = productsByKeywords.Union(
+                        from pc in _productCategoryRepository.Table
+                        join c in _categoryRepository.Table on pc.CategoryId equals c.Id
+                        where c.Name.Contains(keywords)
+                        select pc.BlogId
+                    );
+
+                    if (searchLocalizedValue)
+                    {
+                        productsByKeywords = productsByKeywords.Union(
+                        from pc in _productCategoryRepository.Table
+                        join lp in _localizedPropertyRepository.Table on pc.CategoryId equals lp.EntityId
+                        where lp.LocaleKeyGroup == nameof(Category) &&
+                              lp.LocaleKey == nameof(Category.Name) &&
+                              lp.LocaleValue.Contains(keywords) &&
+                              lp.LanguageId == languageId
+                        select pc.BlogId);
+                    }
+                }
+
+                //search by manufacturer name if admin allows
+                if (_catalogSettings.AllowCustomersToSearchWithManufacturerName)
+                {
+                    productsByKeywords = productsByKeywords.Union(
+                        from pm in _productManufacturerRepository.Table
+                        join m in _manufacturerRepository.Table on pm.ManufacturerId equals m.Id
+                        where m.Name.Contains(keywords)
+                        select pm.ProductId
+                    );
+
+                    if (searchLocalizedValue)
+                    {
+                        productsByKeywords = productsByKeywords.Union(
+                        from pm in _productManufacturerRepository.Table
+                        join lp in _localizedPropertyRepository.Table on pm.ManufacturerId equals lp.EntityId
+                        where lp.LocaleKeyGroup == nameof(Manufacturer) &&
+                              lp.LocaleKey == nameof(Manufacturer.Name) &&
+                              lp.LocaleValue.Contains(keywords) &&
+                              lp.LanguageId == languageId
+                        select pm.ProductId);
+                    }
+                }
+
+                if (searchProductTags)
+                {
+                    productsByKeywords = productsByKeywords.Union(
+                        from pptm in _productTagMappingRepository.Table
+                        join pt in _productTagRepository.Table on pptm.BlogTagId equals pt.Id
+                        where pt.Name.Contains(keywords)
+                        select pptm.BlogId
+                    );
+
+                    if (searchLocalizedValue)
+                    {
+                        productsByKeywords = productsByKeywords.Union(
+                        from pptm in _productTagMappingRepository.Table
+                        join lp in _localizedPropertyRepository.Table on pptm.BlogTagId equals lp.EntityId
+                        where lp.LocaleKeyGroup == nameof(ProductTag) &&
+                              lp.LocaleKey == nameof(ProductTag.Name) &&
+                              lp.LocaleValue.Contains(keywords) &&
+                              lp.LanguageId == languageId
+                        select pptm.BlogId);
+                    }
+                }
+
+                productsQuery =
+                    from p in productsQuery
+                    join pbk in productsByKeywords on p.Id equals pbk
+                    select p;
+            }
+
+            if (categoryIds is not null)
+            {
+                if (categoryIds.Contains(0))
+                    categoryIds.Remove(0);
+
+                if (categoryIds.Any())
+                {
+                    var productCategoryQuery =
+                        from pc in _productCategoryRepository.Table
+                        where (!excludeFeaturedProducts || !pc.IsFeaturedProduct) &&
+                            categoryIds.Contains(pc.CategoryId)
+                        group pc by pc.BlogId into pc
+                        select new
+                        {
+                            ProductId = pc.Key,
+                            DisplayOrder = pc.First().DisplayOrder
+                        };
+
+                    productsQuery =
+                        from p in productsQuery
+                        join pc in productCategoryQuery on p.Id equals pc.ProductId
+                        orderby pc.DisplayOrder, p.Title
+                        select p;
+                }
+            }
+
+            if (manufacturerIds is not null)
+            {
+                if (manufacturerIds.Contains(0))
+                    manufacturerIds.Remove(0);
+
+                if (manufacturerIds.Any())
+                {
+                    var productManufacturerQuery =
+                        from pm in _productManufacturerRepository.Table
+                        where (!excludeFeaturedProducts || !pm.IsFeaturedProduct) &&
+                            manufacturerIds.Contains(pm.ManufacturerId)
+                        group pm by pm.ProductId into pm
+                        select new
+                        {
+                            ProductId = pm.Key,
+                            DisplayOrder = pm.First().DisplayOrder
+                        };
+
+                    productsQuery =
+                        from p in productsQuery
+                        join pm in productManufacturerQuery on p.Id equals pm.ProductId
+                        orderby pm.DisplayOrder, p.Title
+                        select p;
+                }
+            }
+
+            if (productTagId > 0)
+            {
+                productsQuery =
+                    from p in productsQuery
+                    join ptm in _productTagMappingRepository.Table on p.Id equals ptm.BlogId
+                    where ptm.BlogTagId == productTagId
+                    select p;
+            }
+
+            if (filteredSpecOptions?.Count > 0)
+            {
+                var specificationAttributeIds = filteredSpecOptions
+                    .Select(sao => sao.SpecificationAttributeId)
+                    .Distinct();
+
+                foreach (var specificationAttributeId in specificationAttributeIds)
+                {
+                    var optionIdsBySpecificationAttribute = filteredSpecOptions
+                        .Where(o => o.SpecificationAttributeId == specificationAttributeId)
+                        .Select(o => o.Id);
+
+                    var productSpecificationQuery =
+                        from psa in _productSpecificationAttributeRepository.Table
+                        where psa.AllowFiltering && optionIdsBySpecificationAttribute.Contains(psa.SpecificationAttributeOptionId)
+                        select psa;
+
+                    productsQuery =
+                        from p in productsQuery
+                        where productSpecificationQuery.Any(pc => pc.ProductId == p.Id)
+                        select p;
+                }
+            }
+
+            return await productsQuery.ToPagedListAsync(pageIndex, pageSize);
         }
 
         /// <summary>

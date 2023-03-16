@@ -6,9 +6,9 @@
         @await Html.PartialAsync("Table", new DataTablesModel
         {
             Name = "products-grid",
-            UrlRead = new DataUrl("ProductList", "BlogCategory", new RouteValueDictionary { [nameof(Model.CategoryProductSearchModel.CategoryId)] = Model.CategoryProductSearchModel.CategoryId }),
-            UrlDelete = new DataUrl("ProductDelete", "BlogCategory", null),
-            UrlUpdate = new DataUrl("ProductUpdate", "BlogCategory", null),
+            UrlRead = new DataUrl("BlogList", "BlogCategory", new RouteValueDictionary { [nameof(Model.CategoryProductSearchModel.CategoryId)] = Model.CategoryProductSearchModel.CategoryId }),
+            UrlDelete = new DataUrl("BlogDelete", "BlogCategory", null),
+            UrlUpdate = new DataUrl("BlogUpdate", "BlogCategory", null),
             Length = Model.CategoryProductSearchModel.PageSize,
             LengthMenu = Model.CategoryProductSearchModel.AvailablePageSizes,
             ColumnCollection = new List<ColumnProperty>
@@ -39,7 +39,7 @@
                         Title = T("Admin.Common.View").Text,
                         Width = "150",
                         ClassName = NopColumnClassDefaults.Button,
-                        Render = new RenderButtonView(new DataUrl("~/Admin/Product/Edit/", nameof(BlogCategoryBlogPostModel.BlogId)))
+                        Render = new RenderButtonView(new DataUrl("~/Admin/Blog/BlogPostEdit/", nameof(BlogCategoryBlogPostModel.BlogId)))
                     },
                     new ColumnProperty(nameof(BlogCategoryBlogPostModel.Id))
                     {
@@ -60,7 +60,7 @@
     </div>
     <div class="card-footer">
         <button type="submit" id="btnAddNewProduct"
-                onclick="javascript:OpenWindow('@(Url.Action("ProductAddPopup", "BlogCategory", new { categoryId = Model.Id, btnId = "btnRefreshProducts", formId = "category-form" }))', 800, 800, true); return false;"
+                onclick="javascript:OpenWindow('@(Url.Action("BlogAddPopup", "BlogCategory", new { categoryId = Model.Id, btnId = "btnRefreshProducts", formId = "category-form" }))', 800, 800, true); return false;"
                 class="btn btn-primary">
             @T("Admin.Catalog.BlogCategories.AddNew")
         </button>

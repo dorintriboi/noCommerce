@@ -1,10 +1,10 @@
-﻿@model AddProductToCategorySearchModel
+﻿@model AddBlogToCategorySearchModel
 
 @{
     Layout = "_AdminPopupLayout";
 
     //page title
-    ViewBag.PageTitle = T("Admin.Catalog.Categories.Products.AddNew").Text;
+    ViewBag.PageTitle = T("Admin.Catalog.BlogCategories.Products.AddNew").Text;
 }
 
 @if (ViewBag.RefreshPage == true)
@@ -17,13 +17,13 @@
 }
 else
 {
-    <form asp-controller="BlogCategory" asp-action="ProductAddPopup"
+    <form asp-controller="BlogCategory" asp-action="BlogAddPopup"
           asp-route-categoryId="@Context.Request.Query["categoryId"]"
           asp-route-btnId="@Context.Request.Query["btnId"]"
           asp-route-formId="@Context.Request.Query["formId"]">
         <div class="content-header clearfix">
             <h1 class="float-left">
-                @T("Admin.Catalog.Categories.Products.AddNew")
+                @T("Admin.Catalog.BlogCategories.Products.AddNew")
             </h1>
             <div class="float-right">
                 &nbsp;
@@ -39,10 +39,10 @@ else
                                     <div class="col-sm-6">
                                         <div class="form-group row">
                                             <div class="col-sm-5">
-                                                <nop-label asp-for="SearchProductName" />
+                                                <nop-label asp-for="SearchBlogName" />
                                             </div>
                                             <div class="col-sm-7">
-                                                <nop-editor asp-for="SearchProductName" />
+                                                <nop-editor asp-for="SearchBlogName" />
                                             </div>
                                         </div>
                                         <div class="form-group row" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
@@ -71,14 +71,6 @@ else
                                                 <nop-select asp-for="SearchStoreId" asp-items="Model.AvailableStores" />
                                             </div>
                                         </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-5">
-                                                <nop-label asp-for="SearchProductTypeId" />
-                                            </div>
-                                            <div class="col-sm-7">
-                                                <nop-select asp-for="SearchProductTypeId" asp-items="Model.AvailableProductTypes" />
-                                            </div>
-                                        </div>
                                         <div class="form-group row" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                             <div class="col-sm-5">
                                                 <nop-label asp-for="SearchManufacturerId" />
@@ -104,40 +96,33 @@ else
                             <div class="card-body">
                                 @await Html.PartialAsync("Table", new DataTablesModel
                                 {
-                                    Name = "products-grid",
-                                    UrlRead = new DataUrl("ProductAddPopupList", "Category", null),
+                                    Name = "blogs-grid",
+                                    UrlRead = new DataUrl("BlogAddPopupList", "BlogCategory", null),
                                     SearchButtonId = "search-products",
                                     Length = Model.PageSize,
                                     LengthMenu = Model.AvailablePageSizes,
                                     Filters = new List<FilterParameter>
                                     {
-                                        new FilterParameter(nameof(Model.SearchProductName)),
+                                        new FilterParameter(nameof(Model.SearchBlogName)),
                                         new FilterParameter(nameof(Model.SearchCategoryId)),
                                         new FilterParameter(nameof(Model.SearchManufacturerId)),
                                         new FilterParameter(nameof(Model.SearchStoreId)),
                                         new FilterParameter(nameof(Model.SearchVendorId)),
-                                        new FilterParameter(nameof(Model.SearchProductTypeId))
+                                        new FilterParameter(nameof(Model.SearchBlogTypeId))
                                     },
                                     ColumnCollection = new List<ColumnProperty>
                                     {
-                                        new ColumnProperty(nameof(ProductModel.Id))
+                                        new ColumnProperty(nameof(BlogPostModel.Id))
                                         {
                                             IsMasterCheckBox = true,
-                                            Render = new RenderCheckBox(nameof(AddProductToCategoryModel.SelectedProductIds)),
+                                            Render = new RenderCheckBox(nameof(AddBlogToCategoryModel.SelectedBlogsIds)),
                                             ClassName = NopColumnClassDefaults.CenterAll,
                                             Width = "50"
                                         },
-                                        new ColumnProperty(nameof(ProductModel.Name))
+                                        new ColumnProperty(nameof(BlogPostModel.Title))
                                         {
-                                            Title = T("Admin.Catalog.Products.Fields.Name").Text
+                                            Title = T("Admin.Catalog.Blogs.Fields.Blog").Text
                                         },
-                                        new ColumnProperty(nameof(ProductModel.Published))
-                                        {
-                                            Title = T("Admin.Catalog.Products.Fields.Published").Text,
-                                            Width = "100",
-                                            ClassName = NopColumnClassDefaults.CenterAll,
-                                            Render = new RenderBoolean()
-                                        }
                                     }
                                 })
                             </div>

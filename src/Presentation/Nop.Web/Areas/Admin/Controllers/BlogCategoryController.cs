@@ -9,6 +9,7 @@ using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Discounts;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Customers;
 using Nop.Services.Discounts;
@@ -47,7 +48,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly INotificationService _notificationService;
         private readonly IPermissionService _permissionService;
         private readonly IPictureService _pictureService;
-        private readonly IProductService _productService;
+        private readonly IBlogService _blogService;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStoreMappingService _storeMappingService;
         private readonly IStoreService _storeService;
@@ -71,7 +72,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             INotificationService notificationService,
             IPermissionService permissionService,
             IPictureService pictureService,
-            IProductService productService,
+            IBlogService blogService,
             IStaticCacheManager staticCacheManager,
             IStoreMappingService storeMappingService,
             IStoreService storeService,
@@ -91,7 +92,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _notificationService = notificationService;
             _permissionService = permissionService;
             _pictureService = pictureService;
-            _productService = productService;
+            _blogService = blogService;
             _staticCacheManager = staticCacheManager;
             _storeMappingService = storeMappingService;
             _storeService = storeService;
@@ -521,7 +522,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Products
 
         [HttpPost]
-        public virtual async Task<IActionResult> ProductList(BlogCategoryBlogPostSearchModel searchModel)
+        public virtual async Task<IActionResult> BlogList(BlogCategoryBlogPostSearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return await AccessDeniedDataTablesJson();
@@ -536,7 +537,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(model);
         }
 
-        public virtual async Task<IActionResult> ProductUpdate(BlogCategoryBlogPostModel model)
+        public virtual async Task<IActionResult> BlogUpdate(BlogCategoryBlogPostModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return AccessDeniedView();
@@ -552,7 +553,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             return new NullJsonResult();
         }
 
-        public virtual async Task<IActionResult> ProductDelete(int id)
+        public virtual async Task<IActionResult> BlogDelete(int id)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return AccessDeniedView();
@@ -566,19 +567,19 @@ namespace Nop.Web.Areas.Admin.Controllers
             return new NullJsonResult();
         }
 
-        public virtual async Task<IActionResult> ProductAddPopup(int categoryId)
+        public virtual async Task<IActionResult> BlogAddPopup(int categoryId)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return AccessDeniedView();
 
             //prepare model
-            var model = await _categoryModelFactory.PrepareAddProductToCategorySearchModelAsync(new AddProductToCategorySearchModel());
+            var model = await _categoryModelFactory.PrepareAddBlogToCategorySearchModelAsync(new AddBlogToCategorySearchModel());
 
             return View(model);
         }
 
         [HttpPost]
-        public virtual async Task<IActionResult> ProductAddPopupList(AddProductToCategorySearchModel searchModel)
+        public virtual async Task<IActionResult> BlogAddPopupList(AddProductToCategorySearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return await AccessDeniedDataTablesJson();
@@ -591,27 +592,27 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [FormValueRequired("save")]
-        public virtual async Task<IActionResult> ProductAddPopup(AddProductToCategoryModel model)
+        public virtual async Task<IActionResult> BlogAddPopup(AddBlogToCategoryModel model)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return AccessDeniedView();
 
             //get selected products
-            var selectedProducts = await _productService.GetProductsByIdsAsync(model.SelectedProductIds.ToArray());
-            if (selectedProducts.Any())
+            var selectedBlogs = await _blogService.GetBlogsByIdsAsync(model.SelectedBlogsIds.ToArray());
+            if (selectedBlogs.Any())
             {
                 var existingProductCategories = await _categoryService.GetProductCategoriesByCategoryIdAsync(model.CategoryId, showHidden: true);
-                foreach (var product in selectedProducts)
+                foreach (var blog in selectedBlogs)
                 {
                     //whether product category with such parameters already exists
-                    if (_categoryService.FindProductCategory(existingProductCategories, product.Id, model.CategoryId) != null)
+                    if (_categoryService.FindProductCategory(existingProductCategories, blog.Id, model.CategoryId) != null)
                         continue;
 
                     //insert the new product category mapping
                     await _categoryService.InsertProductCategoryAsync(new BlogCategoryBlogPost
                     {
                         CategoryId = model.CategoryId,
-                        BlogId = product.Id,
+                        BlogId = blog.Id,
                         IsFeaturedProduct = false,
                         DisplayOrder = 1
                     });
@@ -620,7 +621,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             ViewBag.RefreshPage = true;
 
-            return View(new AddProductToCategorySearchModel());
+            return View(new AddBlogToCategorySearchModel());
         }
 
         #endregion

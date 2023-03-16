@@ -62,7 +62,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product search model to add to the category
         /// </returns>
-        Task<AddProductToCategorySearchModel> PrepareAddProductToCategorySearchModelAsync(AddProductToCategorySearchModel searchModel);
+        Task<AddBlogToCategorySearchModel> PrepareAddBlogToCategorySearchModelAsync(AddBlogToCategorySearchModel searchModel);
 
         /// <summary>
         /// Prepare paged product list model to add to the category
@@ -72,6 +72,6 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product list model to add to the category
         /// </returns>
-        Task<AddProductToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel);
+        Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel);
     }
 }

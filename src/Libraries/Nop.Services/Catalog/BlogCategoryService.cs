@@ -572,7 +572,7 @@ namespace Nop.Services.Catalog
 
             var query = from pc in _productCategoryRepository.Table
                         join p in _productRepository.Table on pc.BlogId equals p.Id
-                        where pc.CategoryId == categoryId 
+                        where pc.CategoryId == categoryId && !p.Deleted
                         orderby pc.DisplayOrder, pc.Id
                         select pc;
 

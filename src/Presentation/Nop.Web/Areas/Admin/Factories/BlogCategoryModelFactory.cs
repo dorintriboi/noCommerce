@@ -7,6 +7,7 @@ using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Directory;
 using Nop.Services.Discounts;
@@ -38,7 +39,7 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly IDiscountSupportedModelFactory _discountSupportedModelFactory;
         private readonly ILocalizationService _localizationService;
         private readonly ILocalizedModelFactory _localizedModelFactory;
-        private readonly IProductService _productService;
+        private readonly IBlogService _productService;
         private readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
         private readonly IUrlRecordService _urlRecordService;
 
@@ -56,7 +57,7 @@ namespace Nop.Web.Areas.Admin.Factories
             IDiscountSupportedModelFactory discountSupportedModelFactory,
             ILocalizationService localizationService,
             ILocalizedModelFactory localizedModelFactory,
-            IProductService productService,
+            IBlogService productService,
             IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
             IUrlRecordService urlRecordService)
         {
@@ -293,7 +294,7 @@ namespace Nop.Web.Areas.Admin.Factories
                     var categoryProductModel = productCategory.ToModel<BlogCategoryBlogPostModel>();
 
                     //fill in additional values (not existing in the entity)
-                    categoryProductModel.BlogName = (await _productService.GetProductByIdAsync(productCategory.BlogId))?.Name;
+                    categoryProductModel.BlogName = (await _productService.GetBlogPostByIdAsync(productCategory.BlogId))?.Title;
 
                     return categoryProductModel;
                 });
@@ -301,6 +302,8 @@ namespace Nop.Web.Areas.Admin.Factories
 
             return model;
         }
+        
+
 
         /// <summary>
         /// Prepare product search model to add to the category
@@ -310,7 +313,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product search model to add to the category
         /// </returns>
-        public virtual async Task<AddProductToCategorySearchModel> PrepareAddProductToCategorySearchModelAsync(AddProductToCategorySearchModel searchModel)
+        public virtual async Task<AddBlogToCategorySearchModel> PrepareAddBlogToCategorySearchModelAsync(AddBlogToCategorySearchModel searchModel)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -328,7 +331,7 @@ namespace Nop.Web.Areas.Admin.Factories
             await _baseAdminModelFactory.PrepareVendorsAsync(searchModel.AvailableVendors);
 
             //prepare available product types
-            await _baseAdminModelFactory.PrepareProductTypesAsync(searchModel.AvailableProductTypes);
+            await _baseAdminModelFactory.PrepareProductTypesAsync(searchModel.AvailableBlogsTypes);
 
             //prepare page parameters
             searchModel.SetPopupGridPageSize();
@@ -345,13 +348,13 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product list model to add to the category
         /// </returns>
-        public virtual async Task<AddProductToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel)
+        public virtual async Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
 
             //get products
-            var products = await _productService.SearchProductsAsync(showHidden: true,
+            var products = await _productService.SearchBlogsAsync(showHidden: true,
                 categoryIds: new List<int> { searchModel.SearchCategoryId },
                 manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
                 storeId: searchModel.SearchStoreId,
@@ -361,11 +364,11 @@ namespace Nop.Web.Areas.Admin.Factories
                 pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
             //prepare grid model
-            var model = await new AddProductToCategoryListModel().PrepareToGridAsync(searchModel, products, () =>
+            var model = await new AddBlogToCategoryListModel().PrepareToGridAsync(searchModel, products, () =>
             {
                 return products.SelectAwait(async product =>
                 {
-                    var productModel = product.ToModel<ProductModel>();
+                    var productModel = product.ToModel<BlogPostModel>();
 
                     productModel.SeName = await _urlRecordService.GetSeNameAsync(product, 0, true, false);
 
