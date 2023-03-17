@@ -348,7 +348,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product list model to add to the category
         /// </returns>
-        public virtual async Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel)
+        public virtual async Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddBlogToCategorySearchModel searchModel)
         {
             if (searchModel == null)
                 throw new ArgumentNullException(nameof(searchModel));
@@ -359,8 +359,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
                 storeId: searchModel.SearchStoreId,
                 vendorId: searchModel.SearchVendorId,
-                productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
-                keywords: searchModel.SearchProductName,
+                keywords: searchModel.SearchBlogName,
                 pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
             //prepare grid model

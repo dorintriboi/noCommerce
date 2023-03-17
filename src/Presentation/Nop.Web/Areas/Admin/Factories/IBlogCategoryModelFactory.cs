@@ -72,6 +72,6 @@ namespace Nop.Web.Areas.Admin.Factories
         /// A task that represents the asynchronous operation
         /// The task result contains the product list model to add to the category
         /// </returns>
-        Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddProductToCategorySearchModel searchModel);
+        Task<AddBlogToCategoryListModel> PrepareAddProductToCategoryListModelAsync(AddBlogToCategorySearchModel searchModel);
     }
 }

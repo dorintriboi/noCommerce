@@ -579,7 +579,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual async Task<IActionResult> BlogAddPopupList(AddProductToCategorySearchModel searchModel)
+        public virtual async Task<IActionResult> BlogAddPopupList(AddBlogToCategorySearchModel searchModel)
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
                 return await AccessDeniedDataTablesJson();
