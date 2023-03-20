@@ -1,25 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Seo;
+using Nop.Core.Domain.Vendors;
 using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Customers;
 using Nop.Services.Helpers;
 using Nop.Services.Html;
 using Nop.Services.Localization;
+using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Blogs;
 using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Factories;
 using Nop.Web.Framework.Models.Extensions;
+using Nop.Web.Models.Catalog;
+using Nop.Web.Models.Media;
 
 namespace Nop.Web.Areas.Admin.Factories
 {
@@ -40,8 +49,12 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly ILocalizationService _localizationService;
         private readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
         private readonly IStoreService _storeService;
+        private readonly SeoSettings _seoSettings;
         private readonly IUrlRecordService _urlRecordService;
-
+        private readonly IStoreContext _storeContext;
+        private readonly IVendorService _vendorService;
+        private readonly VendorSettings _vendorSettings;
+        private readonly IWebHelper _webHelper;
         #endregion
 
         #region Ctor
@@ -49,16 +62,26 @@ namespace Nop.Web.Areas.Admin.Factories
         public BlogModelFactory(CatalogSettings catalogSettings,
             IBlogBaseAdminModelFactory baseAdminModelFactory,
             IBlogService blogService,
+            IWebHelper webHelper,
+            VendorSettings vendorSettings,
+            SeoSettings seoSettings,
             ICustomerService customerService,
             IDateTimeHelper dateTimeHelper,
             IHtmlFormatter htmlFormatter,
+            IVendorService vendorService,
             ILanguageService languageService,
             ILocalizationService localizationService,
             IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
             IStoreService storeService,
             IUrlRecordService urlRecordService,
+            IStoreContext storeContext,
             IBlogCategoryService categoryService)
         {
+            _webHelper = webHelper;
+            _vendorSettings = vendorSettings;
+            _vendorService = vendorService;
+            _seoSettings = seoSettings;
+            _storeContext = storeContext;
             _categoryService = categoryService;
             _catalogSettings = catalogSettings;
             _baseAdminModelFactory = baseAdminModelFactory;
@@ -146,7 +169,9 @@ namespace Nop.Web.Areas.Admin.Factories
 
             return model;
         }
-
+        
+        
+        
         /// <summary>
         /// Prepare blog post model
         /// </summary>

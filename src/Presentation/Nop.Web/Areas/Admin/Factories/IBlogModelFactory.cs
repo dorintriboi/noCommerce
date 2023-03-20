@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Nop.Core.Domain.Blogs;
+using Nop.Core.Domain.Orders;
 using Nop.Web.Areas.Admin.Models.Blogs;
+using Nop.Web.Models.Catalog;
 
 namespace Nop.Web.Areas.Admin.Factories
 {
@@ -19,6 +21,7 @@ namespace Nop.Web.Areas.Admin.Factories
         /// The task result contains the blog content model
         /// </returns>
         Task<BlogContentModel> PrepareBlogContentModelAsync(BlogContentModel blogContentModel, int? filterByBlogPostId);
+       
 
         /// <summary>
         /// Prepare paged blog post list model

@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Blogs;
+using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Localization;
+using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
 using Nop.Core.Events;
 using Nop.Core.Rss;
@@ -47,6 +49,7 @@ namespace Nop.Web.Controllers
         private readonly IWorkContext _workContext;
         private readonly IWorkflowMessageService _workflowMessageService;
         private readonly LocalizationSettings _localizationSettings;
+        private readonly CatalogSettings _catalogSettings;
 
         #endregion
 
@@ -54,6 +57,7 @@ namespace Nop.Web.Controllers
 
         public BlogController(BlogSettings blogSettings,
             CaptchaSettings captchaSettings,
+            CatalogSettings catalogSettings,
             IBlogModelFactory blogModelFactory,
             IBlogService blogService,
             ICustomerActivityService customerActivityService,
@@ -70,6 +74,7 @@ namespace Nop.Web.Controllers
             IWorkflowMessageService workflowMessageService,
             LocalizationSettings localizationSettings)
         {
+            _catalogSettings = catalogSettings;
             _blogSettings = blogSettings;
             _captchaSettings = captchaSettings;
             _blogModelFactory = blogModelFactory;
@@ -241,6 +246,56 @@ namespace Nop.Web.Controllers
             await _blogModelFactory.PrepareBlogPostModelAsync(model, blogPost, true);
             return View(model);
         }
+        /*public virtual async Task<IActionResult> BlogDetails(int productId, int updatecartitemid = 0)
+        {
+            var product = await _blogService.GetBlogByIdAsync(productId);
+            if (product == null || product.Deleted)
+                return InvokeHttp404();
+
+            var notAvailable =
+                //published?
+                ( !_catalogSettings.AllowViewUnpublishedProductPage) ||
+                //ACL (access control list) 
+                //Store mapping
+                !await _storeMappingService.AuthorizeAsync(product) ||
+                //availability dates
+                !_blogService.BlogIsAvailable(product);
+            //Check whether the current user has a "Manage products" permission (usually a store owner)
+            //We should allows him (her) to use "Preview" functionality
+            var hasAdminAccess = await _permissionService.AuthorizeAsync(StandardPermissionProvider.AccessAdminPanel) && await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageBlog);
+            if (notAvailable && !hasAdminAccess)
+                return InvokeHttp404();
+
+            //visible individually?
+           
+
+            //update existing shopping cart or wishlist  item?
+        
+            
+
+            //display "edit" (manage) link
+            if (await _permissionService.AuthorizeAsync(StandardPermissionProvider.AccessAdminPanel) &&
+                await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageBlog))
+            {
+                //a vendor should have access only to his products
+                var currentVendor = await _workContext.GetCurrentVendorAsync();
+                if (currentVendor == null)
+                {
+                    DisplayEditLink(Url.Action("BlogPostEdit", "Blog", new { id = product.Id, area = AreaNames.Admin }));
+                }
+            }
+
+            //activity log
+            await _customerActivityService.InsertActivityAsync("PublicStore.ViewProduct",
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.PublicStore.ViewProduct"), product.Title), product);
+
+            //model
+            var model = await _blogModelFactory.PrepareBlogDetailsModelAsync(product, false);
+            //template
+            var productTemplateViewPath = await _blogModelFactory.PrepareBlogTemplateViewPathAsync(product);
+
+            return View(productTemplateViewPath, model);
+        }*/
 
         #endregion
     }

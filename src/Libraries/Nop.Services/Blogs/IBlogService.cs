@@ -20,7 +20,10 @@ namespace Nop.Services.Blogs
         /// <param name="blogPost">Blog post</param>
         /// <returns>A task that represents the asynchronous operation</returns>
         Task DeleteBlogPostAsync(BlogPost blogPost);
-
+        
+        Task<IList<BlogPost>> GetBlogCategoryFeaturedBlogsAsync(int categoryId, int storeId = 0);
+        Task<int> GetNumberOfBlogsInBlogCategoryAsync(IList<int> categoryIds = null, int storeId = 0);
+        Task<IPagedList<BlogPost>> GetBlogsMarkedAsNewAsync(int storeId = 0, int pageIndex = 0, int pageSize = int.MaxValue);
         /// <summary>
         /// Gets a blog post
         /// </summary>
@@ -52,7 +55,7 @@ namespace Nop.Services.Blogs
             bool searchProductTags = false,
             int languageId = 0,
             IList<SpecificationAttributeOption> filteredSpecOptions = null,
-            ProductSortingEnum orderBy = ProductSortingEnum.Position,
+            BlogSortingEnum orderBy = BlogSortingEnum.Position,
             bool showHidden = false,
             bool? overridePublished = null);
         /// <summary>
@@ -70,9 +73,16 @@ namespace Nop.Services.Blogs
         /// A task that represents the asynchronous operation
         /// The task result contains the blog posts
         /// </returns>
+        ///
+        ///
+        /// 
         Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
             DateTime? dateFrom = null, DateTime? dateTo = null, 
             int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null);
+        Task<IPagedList<BlogReview>> GetAllBlogReviewsAsync(int customerId = 0, bool? approved = null,
+            DateTime? fromUtc = null, DateTime? toUtc = null,
+            string message = null, int storeId = 0, int productId = 0, int vendorId = 0, bool showHidden = false,
+            int pageIndex = 0, int pageSize = int.MaxValue);
 
         /// <summary>
         /// Gets all blog posts
@@ -90,6 +100,7 @@ namespace Nop.Services.Blogs
         Task<IPagedList<BlogPost>> GetAllBlogPostsByTagAsync(int storeId = 0,
             int languageId = 0, string tag = "",
             int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
+        
 
         /// <summary>
         /// Gets all blog post tags
@@ -109,6 +120,8 @@ namespace Nop.Services.Blogs
         /// <param name="blogPost">Blog post</param>
         /// <returns>A task that represents the asynchronous operation</returns>
         Task InsertBlogPostAsync(BlogPost blogPost);
+        Task<BlogPost> GetBlogByIdAsync(int productId);
+        bool BlogIsAvailable(BlogPost product, DateTime? dateTime = null);
 
         /// <summary>
         /// Updates the blog post

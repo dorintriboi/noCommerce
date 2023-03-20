@@ -69,6 +69,8 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a value indicating whether customers are allowed to change product view mode
         /// </summary>
         public bool AllowProductViewModeChanging { get; set; }
+        public bool AllowBlogViewModeChanging { get; set; }
+        
 
         /// <summary>
         /// Gets or sets a default view mode
@@ -89,11 +91,13 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a value indicating whether we include subcategories (when 'ShowCategoryProductNumber' is 'true')
         /// </summary>
         public bool ShowCategoryProductNumberIncludingSubcategories { get; set; }
+        public bool ShowBlogCategoryBlogPostNumberIncludingSubcategories { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether category breadcrumb is enabled
         /// </summary>
         public bool CategoryBreadcrumbEnabled { get; set; }
+        public bool BlogCategoryBreadcrumbEnabled { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether a 'Share button' is enabled
@@ -189,16 +193,19 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a number of products on the "New products" page
         /// </summary>
         public int NewProductsPageSize { get; set; }
+        public int NewBlogsPageSize { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether customers are allowed to select page size on the "New products" page
         /// </summary>
         public bool NewProductsAllowCustomersToSelectPageSize { get; set; }
+        public bool NewBlogsAllowCustomersToSelectPageSize { get; set; }
 
         /// <summary>
         /// Gets or sets the available customer selectable page size options on the "New products" page
         /// </summary>
         public string NewProductsPageSizeOptions { get; set; }
+        public string NewBlogsPageSizeOptions { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether "Compare products" feature is enabled
@@ -354,6 +361,7 @@ namespace Nop.Core.Domain.Catalog
         /// An option indicating whether products on category and manufacturer pages should include featured products as well
         /// </summary>
         public bool IncludeFeaturedProductsInNormalLists { get; set; }
+        public bool IncludeFeaturedBlogsInNormalLists { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to render link to required products in "Require other products added to the cart" warning
@@ -374,6 +382,7 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a value indicating whether to ignore featured products (side-wide). It can significantly improve performance when enabled.
         /// </summary>
         public bool IgnoreFeaturedProducts { get; set; }
+        public bool IgnoreFeaturedBlogs { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to ignore ACL rules (side-wide). It can significantly improve performance when enabled.
@@ -459,6 +468,7 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a display order of ProductSortingEnum values 
         /// </summary>
         public Dictionary<int, int> ProductSortingEnumDisplayOrder { get; set; }
+        public Dictionary<int, int> BlogSortingEnumDisplayOrder { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the products need to be exported/imported with their attributes
@@ -534,6 +544,8 @@ namespace Nop.Core.Domain.Catalog
         /// Get or set a value indicating whether use standart or AJAX products loading (applicable to 'paging', 'filtering', 'view modes') in catalog
         /// </summary>
         public bool UseAjaxCatalogProductsLoading { get; set; }
+        
+        public bool UseAjaxCatalogBlogsLoading { get; set; }
 
         /// <summary>
         /// Get or set a value indicating whether the manufacturer filtering is enabled on catalog pages
@@ -580,6 +592,7 @@ namespace Nop.Core.Domain.Catalog
         /// </summary>
         /// <remarks>We have ProductUrlStructureType enum, but we use int value here so that it can be overridden in third-party plugins</remarks>
         public int ProductUrlStructureTypeId { get; set; }
+        public int BlogUrlStructureTypeId { get; set; }
 
         /// <summary>
         /// Gets or sets an system name of active search provider

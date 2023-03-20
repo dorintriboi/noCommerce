@@ -10,10 +10,10 @@ namespace Nop.Web.Models.Blogs
         public BlogCategoryModel()
         {
             PictureModel = new PictureModel();
-            FeaturedProducts = new List<ProductOverviewModel>();
+            FeaturedProducts = new List<BlogOverviewModel>();
             SubCategories = new List<SubCategoryModel>();
             CategoryBreadcrumb = new List<BlogCategoryModel>();
-            CatalogProductsModel = new CatalogProductsModel();
+            CatalogProductsModel = new CatalogBlogsModel();
         }
 
         public string Name { get; set; }
@@ -30,9 +30,9 @@ namespace Nop.Web.Models.Blogs
         
         public IList<SubCategoryModel> SubCategories { get; set; }
 
-        public IList<ProductOverviewModel> FeaturedProducts { get; set; }
+        public IList<BlogOverviewModel> FeaturedProducts { get; set; }
 
-        public CatalogProductsModel CatalogProductsModel { get; set; }
+        public CatalogBlogsModel CatalogProductsModel { get; set; }
 
         #region Nested Classes
 

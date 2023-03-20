@@ -75,6 +75,9 @@ namespace Nop.Web.Infrastructure
             endpointRouteBuilder.MapControllerRoute(name: NopRoutingDefaults.RouteName.Generic.Category,
                 pattern: genericPattern,
                 defaults: new { controller = "Catalog", action = "Category" });
+            endpointRouteBuilder.MapControllerRoute(name: NopRoutingDefaults.RouteName.Generic.BlogCategory,
+                pattern: genericPattern,
+                defaults: new { controller = "Catalog", action = "BlogCategory" });
 
             endpointRouteBuilder.MapControllerRoute(name: NopRoutingDefaults.RouteName.Generic.Manufacturer,
                 pattern: genericPattern,

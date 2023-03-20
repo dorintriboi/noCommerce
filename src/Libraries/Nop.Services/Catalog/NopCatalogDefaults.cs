@@ -209,6 +209,7 @@ namespace Nop.Services.Catalog
         /// {3} : store ID
         /// </remarks>
         public static CacheKey ProductManufacturersByProductCacheKey => new("Nop.productmanufacturer.byproduct.{0}-{1}-{2}-{3}", ProductManufacturersByProductPrefix);
+        public static CacheKey BlogManufacturersByBlogCacheKey => new("Nop.blogmanufacturer.byblog.{0}-{1}-{2}-{3}", BlogManufacturersByBlogPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
@@ -217,6 +218,7 @@ namespace Nop.Services.Catalog
         /// {0} : product ID
         /// </remarks>
         public static string ProductManufacturersByProductPrefix => "Nop.productmanufacturer.byproduct.{0}";
+        public static string BlogManufacturersByBlogPrefix => "Nop.productmanufacturer.byproduct.{0}";
 
         /// <summary>
         /// Gets a key for caching
@@ -282,6 +284,9 @@ namespace Nop.Services.Catalog
         /// </remarks>
         public static CacheKey CategoryFeaturedProductsIdsKey => new("Nop.product.featured.bycategory.{0}-{1}-{2}", CategoryFeaturedProductsIdsPrefix, FeaturedProductIdsPrefix);
         public static string CategoryFeaturedProductsIdsPrefix => "Nop.product.featured.bycategory.{0}";
+        
+        public static CacheKey BlogCategoryFeaturedBlogsIdsKey => new("Nop.blog.featured.bycategory.{0}-{1}-{2}", BlogCategoryFeaturedBlogsIdsPrefix, FeaturedBlogIdsPrefix);
+        public static string BlogCategoryFeaturedBlogsIdsPrefix => "Nop.product.featured.bycategory.{0}";
 
         /// <summary>
         /// Key for caching of a value indicating whether a manufacturer has featured products
@@ -295,6 +300,9 @@ namespace Nop.Services.Catalog
         public static string ManufacturerFeaturedProductIdsPrefix => "Nop.product.featured.bymanufacturer.{0}";
 
         public static string FeaturedProductIdsPrefix => "Nop.product.featured.";
+        
+        public static string FeaturedBlogIdsPrefix => "Nop.blog.featured.";
+
 
         /// <summary>
         /// Gets a key for product prices

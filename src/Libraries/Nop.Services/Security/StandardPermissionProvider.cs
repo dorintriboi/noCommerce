@@ -14,6 +14,7 @@ namespace Nop.Services.Security
         public static readonly PermissionRecord AllowCustomerImpersonation = new() { Name = "Admin area. Allow Customer Impersonation", SystemName = "AllowCustomerImpersonation", Category = "Customers" };
         public static readonly PermissionRecord ManageProducts = new() { Name = "Admin area. Manage Products", SystemName = "ManageProducts", Category = "Catalog" };
         public static readonly PermissionRecord ManageCategories = new() { Name = "Admin area. Manage Categories", SystemName = "ManageCategories", Category = "Catalog" };
+        public static readonly PermissionRecord ManageBlogCategories = new() { Name = "Admin area. Manage Blog Categories", SystemName = "ManageBlogCategories", Category = "Catalog" };
         public static readonly PermissionRecord ManageManufacturers = new() { Name = "Admin area. Manage Manufacturers", SystemName = "ManageManufacturers", Category = "Catalog" };
         public static readonly PermissionRecord ManageProductReviews = new() { Name = "Admin area. Manage Product Reviews", SystemName = "ManageProductReviews", Category = "Catalog" };
         public static readonly PermissionRecord ManageProductTags = new() { Name = "Admin area. Manage Product Tags", SystemName = "ManageProductTags", Category = "Catalog" };

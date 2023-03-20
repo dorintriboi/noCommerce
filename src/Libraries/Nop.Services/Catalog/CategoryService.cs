@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Nop.Core;
 using Nop.Core.Caching;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
@@ -27,9 +28,11 @@ namespace Nop.Services.Catalog
         private readonly ICustomerService _customerService;
         private readonly ILocalizationService _localizationService;
         private readonly IRepository<Category> _categoryRepository;
+        private readonly IRepository<BlogCategory> _blogCategoryRepository;
         private readonly IRepository<DiscountCategoryMapping> _discountCategoryMappingRepository;
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<ProductCategory> _productCategoryRepository;
+        private readonly IRepository<BlogCategoryBlogPost> _blogPostCategoryRepository;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStoreContext _storeContext;
         private readonly IStoreMappingService _storeMappingService;
@@ -41,6 +44,8 @@ namespace Nop.Services.Catalog
 
         public CategoryService(
             IAclService aclService,
+            IRepository<BlogCategoryBlogPost> blogPostCategoryRepository,
+            IRepository<BlogCategory> blogCategoryRepository,
             ICustomerService customerService,
             ILocalizationService localizationService,
             IRepository<Category> categoryRepository,
@@ -52,6 +57,8 @@ namespace Nop.Services.Catalog
             IStoreMappingService storeMappingService,
             IWorkContext workContext)
         {
+            _blogPostCategoryRepository = blogPostCategoryRepository;
+            _blogCategoryRepository = blogCategoryRepository;
             _aclService = aclService;
             _customerService = customerService;
             _localizationService = localizationService;
@@ -109,6 +116,39 @@ namespace Nop.Services.Catalog
                     .ThenBy(pc => pc.Id);
 
             }, cache => _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.ProductCategoriesByProductCacheKey,
+                productId, showHidden, customerRoleIds, storeId));
+        }
+        
+        protected virtual async Task<IList<BlogCategoryBlogPost>> GetBlogCategoriesByBlogPostIdAsync(int productId, int storeId,
+            bool showHidden = false)
+        {
+            if (productId == 0)
+                return new List<BlogCategoryBlogPost>();
+
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+
+            return await _blogPostCategoryRepository.GetAllAsync(async query =>
+            {
+                if (!showHidden)
+                {
+                    var categoriesQuery = _blogCategoryRepository.Table.Where(c => c.Published);
+
+                    //apply store mapping constraints
+                    categoriesQuery = await _storeMappingService.ApplyStoreMapping(categoriesQuery, storeId);
+
+                    //apply ACL constraints
+                    categoriesQuery = await _aclService.ApplyAcl(categoriesQuery, customerRoleIds);
+
+                    query = query.Where(pc => categoriesQuery.Any(c => !c.Deleted && c.Id == pc.CategoryId));
+                }
+
+                return query
+                    .Where(pc => pc.BlogId == productId)
+                    .OrderBy(pc => pc.DisplayOrder)
+                    .ThenBy(pc => pc.Id);
+
+            }, cache => _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoryBlogPostByBlogCacheKey,
                 productId, showHidden, customerRoleIds, storeId));
         }
 
@@ -440,7 +480,10 @@ namespace Nop.Services.Catalog
         {
             return await _categoryRepository.GetByIdAsync(categoryId, cache => default);
         }
-
+        public virtual async Task<BlogCategory> GetBlogCategoryByIdAsync(int categoryId)
+        {
+            return await _blogCategoryRepository.GetByIdAsync(categoryId, cache => default);
+        }
         /// <summary>
         /// Get categories for which a discount is applied
         /// </summary>
@@ -607,6 +650,12 @@ namespace Nop.Services.Catalog
             var store = await _storeContext.GetCurrentStoreAsync();
 
             return await GetProductCategoriesByProductIdAsync(productId, store.Id, showHidden);
+        }
+        public virtual async Task<IList<BlogCategoryBlogPost>> GetBlogCategoriesByBlogPostIdAsync(int productId, bool showHidden = false)
+        {
+            var store = await _storeContext.GetCurrentStoreAsync();
+
+            return await GetBlogCategoriesByBlogPostIdAsync(productId, store.Id, showHidden);
         }
 
         /// <summary>
@@ -793,6 +842,45 @@ namespace Nop.Services.Catalog
                     category = allCategories != null
                         ? allCategories.FirstOrDefault(c => c.Id == category.ParentCategoryId)
                         : await GetCategoryByIdAsync(category.ParentCategoryId);
+                }
+
+                result.Reverse();
+
+                return result;
+            });
+        }
+        public virtual async Task<IList<BlogCategory>> GetBlogCategoryBreadCrumbAsync(BlogCategory category, IList<BlogCategory> allCategories = null, bool showHidden = false)
+        {
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            var breadcrumbCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoryBreadcrumbCacheKey,
+                category,
+                await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
+                await _storeContext.GetCurrentStoreAsync(),
+                await _workContext.GetWorkingLanguageAsync());
+
+            return await _staticCacheManager.GetAsync(breadcrumbCacheKey, async () =>
+            {
+                var result = new List<BlogCategory>();
+
+                //used to prevent circular references
+                var alreadyProcessedCategoryIds = new List<int>();
+
+                while (category != null && //not null
+                       !category.Deleted && //not deleted
+                       (showHidden || category.Published) && //published
+                       (showHidden || await _aclService.AuthorizeAsync(category)) && //ACL
+                       (showHidden || await _storeMappingService.AuthorizeAsync(category)) && //Store mapping
+                       !alreadyProcessedCategoryIds.Contains(category.Id)) //prevent circular references
+                {
+                    result.Add(category);
+
+                    alreadyProcessedCategoryIds.Add(category.Id);
+
+                    category = allCategories != null
+                        ? allCategories.FirstOrDefault(c => c.Id == category.ParentCategoryId)
+                        : await GetBlogCategoryByIdAsync(category.ParentCategoryId);
                 }
 
                 result.Reverse();

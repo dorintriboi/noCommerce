@@ -113,6 +113,10 @@ namespace Nop.Web.Infrastructure.Cache
         public static CacheKey ProductDetailsPicturesModelKey => new("Nop.pres.product.detailspictures-{0}-{1}-{2}-{3}-{4}-{5}", ProductDetailsPicturesPrefixCacheKey, ProductDetailsPicturesPrefixCacheKeyById);
         public static string ProductDetailsPicturesPrefixCacheKey => "Nop.pres.product.detailspictures";
         public static string ProductDetailsPicturesPrefixCacheKeyById => "Nop.pres.product.detailspictures-{0}-";
+        
+        public static CacheKey BlogDetailsPicturesModelKey => new("Nop.pres.blog.detailspictures-{0}-{1}-{2}-{3}-{4}-{5}", BlogDetailsPicturesPrefixCacheKey, BlogDetailsPicturesPrefixCacheKeyById);
+        public static string BlogDetailsPicturesPrefixCacheKey => "Nop.pres.blog.detailspictures";
+        public static string BlogDetailsPicturesPrefixCacheKeyById => "Nop.pres.blog.detailspictures-{0}-";
 
         /// <summary>
         /// Key for product reviews caching
@@ -125,6 +129,11 @@ namespace Nop.Web.Infrastructure.Cache
 
         public static string ProductReviewsPrefixCacheKey => "Nop.pres.product.reviews";
         public static string ProductReviewsPrefixCacheKeyById => "Nop.pres.product.reviews-{0}-";
+        
+        public static CacheKey BlogReviewsModelKey => new("Nop.pres.blog.reviews-{0}-{1}", BlogReviewsPrefixCacheKey, BlogReviewsPrefixCacheKeyById);
+
+        public static string BlogReviewsPrefixCacheKey => "Nop.pres.blog.reviews";
+        public static string BlogReviewsPrefixCacheKeyById => "Nop.pres.blog.reviews-{0}-";
 
         /// <summary>
         /// Key for product attribute picture caching on the product details page

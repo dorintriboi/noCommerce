@@ -2,6 +2,8 @@
 
 @using Nop.Core.Domain.Catalog
 @using Nop.Core.Domain.Topics
+@using Nop.Web.Framework.TagHelpers.Shared
+@using Nop.Core.Domain.Blogs
 
 @functions {
     async Task CategoryLine(TopMenuModel.CategoryLineModel lineModel)
@@ -46,6 +48,51 @@
         </li>
     }
 }
+
+@functions {
+    async Task BlogCategoryLine(TopMenuModel.BlogCategoryLineModel lineModel)
+    {
+        <li>
+            <a href="@(Url.RouteUrl<BlogCategory>(new { SeName = lineModel.BlogCategory.SeName }))">@lineModel.BlogCategory.Name
+                @if (lineModel.BlogCategory.NumberOfProducts.HasValue)
+                {
+                    <text> </text>@T("Categories.TotalProducts", lineModel.BlogCategory.NumberOfProducts.Value)
+                }
+            </a>
+            @{
+                //subcategories
+                var subCategories = lineModel.ResponsiveMobileMenu ?
+                    //responsive (all categories)
+                    lineModel.BlogCategory.SubCategories :
+                    //standard design (only categories with "IncludeInTopMenu")
+                    lineModel.BlogCategory.SubCategories.Where(x => x.IncludeInTopMenu).ToList();
+
+                var levelClass = "";
+                if (lineModel.Level == 0)
+                {
+                    levelClass = "first-level";
+                }
+                if (subCategories.Count > 0)
+                {
+                    <div class="sublist-toggle"></div>
+                    <ul class="sublist @levelClass">
+                        @foreach (var subCategory in subCategories)
+                        {
+                            var categoryLineModel = new TopMenuModel.BlogCategoryLineModel
+                            {
+                                BlogCategory = subCategory,
+                                Level = lineModel.Level + 1,
+                                ResponsiveMobileMenu = lineModel.ResponsiveMobileMenu
+                            };
+                            await BlogCategoryLine(categoryLineModel);
+                        }
+                    </ul>
+                }
+            }
+        </li>
+    }
+}
+
 
 <ul class="top-menu notmobile">
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderMenuBefore, additionalData = Model })
@@ -94,10 +141,24 @@
     {
         <li><a href="@Url.RouteUrl("ContactUs")">@T("ContactUs")</a></li>
     }
+     @if (!Model.UseAjaxMenu)
+        {
+            var rootBlogCategories = Model.BlogCategories.Where(x => x.IncludeInTopMenu).ToList();
+            @foreach (var category in rootBlogCategories)
+            {
+                var categoryLineModel = new TopMenuModel.BlogCategoryLineModel
+                {
+                    BlogCategory = category
+                };
+                await BlogCategoryLine(categoryLineModel);
+            }
+    
+        }
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderMenuAfter, additionalData = Model })
 </ul>
 @{
     var rootCategoriesResponsive = Model.Categories.ToList();
+    var rootBlogCategoriesResponsive = Model.BlogCategories.ToList();
     //name it "Categories" if we have only categories. Otherwise, "Menu"
     var responsiveMenuTitle = Model.HasOnlyCategories ? T("Categories") : T("Menu");
     <div class="menu-toggle">@responsiveMenuTitle</div>
@@ -148,6 +209,19 @@
         {
             <li><a href="@Url.RouteUrl("ContactUs")">@T("ContactUs")</a></li>
         }
+        @if (!Model.UseAjaxMenu)
+                {
+                    @foreach (var category in rootBlogCategoriesResponsive)
+                    {
+                        var categoryLineModel = new TopMenuModel.BlogCategoryLineModel
+                        {
+                            BlogCategory = category,
+                            ResponsiveMobileMenu = true
+                        };
+                        await BlogCategoryLine(categoryLineModel);
+                    }
+        
+                }
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MobHeaderMenuAfter, additionalData = Model })
     </ul>
 

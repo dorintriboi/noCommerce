@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Framework.Models;
 using Nop.Web.Framework.Mvc.ModelBinding;
+using Nop.Web.Models.Catalog;
 
 namespace Nop.Web.Areas.Admin.Models.Blogs
 {
@@ -130,6 +131,7 @@ namespace Nop.Web.Areas.Admin.Models.Blogs
         public BlogCategoryBlogPostSearchModel CategoryProductSearchModel { get; set; }
 
         public string PrimaryStoreCurrencyCode { get; set; }
+        public CatalogBlogsModel CatalogBlogsModel { get; set; }
 
         #endregion
     }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
 using Nop.Core.Caching;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Media;
@@ -15,6 +16,7 @@ using Nop.Core.Domain.Security;
 using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Vendors;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
@@ -89,6 +91,7 @@ namespace Nop.Web.Factories
 
         public ProductModelFactory(CaptchaSettings captchaSettings,
             CatalogSettings catalogSettings,
+            IBlogService blogService,
             CustomerSettings customerSettings,
             ICategoryService categoryService,
             ICurrencyService currencyService,
@@ -273,6 +276,8 @@ namespace Nop.Web.Factories
 
             return productReview;
         }
+        
+       
 
         /// <summary>
         /// Prepare the product overview price model
@@ -666,6 +671,8 @@ namespace Nop.Web.Factories
 
             return cachedPictures;
         }
+        
+        
 
         /// <summary>
         /// Prepare the product breadcrumb model
@@ -1404,6 +1411,7 @@ namespace Nop.Web.Factories
 
             return models;
         }
+        
 
         /// <summary>
         /// Prepare the product combination models

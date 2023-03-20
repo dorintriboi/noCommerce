@@ -30,6 +30,7 @@ namespace Nop.Services.Catalog
         private readonly IRepository<Manufacturer> _manufacturerRepository;
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<ProductManufacturer> _productManufacturerRepository;
+        private readonly IRepository<BlogManufacturer> _blogManufacturerRepository;
         private readonly IRepository<ProductCategory> _productCategoryRepository;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStoreContext _storeContext;
@@ -44,6 +45,7 @@ namespace Nop.Services.Catalog
             IAclService aclService,
             ICategoryService categoryService,
             ICustomerService customerService,
+            IRepository<BlogManufacturer> blogManufacturerRepository,
             IRepository<DiscountManufacturerMapping> discountManufacturerMappingRepository,
             IRepository<Manufacturer> manufacturerRepository,
             IRepository<Product> productRepository,
@@ -54,6 +56,7 @@ namespace Nop.Services.Catalog
             IStoreMappingService storeMappingService,
             IWorkContext workContext)
         {
+            _blogManufacturerRepository = blogManufacturerRepository;
             _catalogSettings = catalogSettings;
             _aclService = aclService;
             _categoryService = categoryService;
@@ -398,6 +401,41 @@ namespace Nop.Services.Catalog
                         where pm.ProductId == productId && !m.Deleted
                         orderby pm.DisplayOrder, pm.Id
                         select pm;
+
+            if (!showHidden)
+            {
+                var manufacturersQuery = _manufacturerRepository.Table.Where(m => m.Published);
+
+                //apply store mapping constraints
+                manufacturersQuery = await _storeMappingService.ApplyStoreMapping(manufacturersQuery, store.Id);
+
+                //apply ACL constraints
+                manufacturersQuery = await _aclService.ApplyAcl(manufacturersQuery, customerRoleIds);
+
+                query = query.Where(pm => manufacturersQuery.Any(m => m.Id == pm.ManufacturerId));
+            }
+
+            return await _staticCacheManager.GetAsync(key, query.ToList);
+        }
+        
+        public virtual async Task<IList<BlogManufacturer>> GetBlogManufacturersByBlogIdAsync(int productId,
+            bool showHidden = false)
+        {
+            if (productId == 0)
+                return new List<BlogManufacturer>();
+
+            var store = await _storeContext.GetCurrentStoreAsync();
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+
+            var key = _staticCacheManager
+                .PrepareKeyForDefaultCache(NopCatalogDefaults.BlogManufacturersByBlogCacheKey, productId, showHidden, customerRoleIds, store);
+
+            var query = from pm in _blogManufacturerRepository.Table
+                join m in _manufacturerRepository.Table on pm.ManufacturerId equals m.Id
+                where pm.BlogId == productId && !m.Deleted
+                orderby pm.DisplayOrder, pm.Id
+                select pm;
 
             if (!showHidden)
             {

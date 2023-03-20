@@ -164,6 +164,7 @@ namespace Nop.Services.Catalog
         /// The task result contains the product manufacturer mapping collection
         /// </returns>
         Task<IList<ProductManufacturer>> GetProductManufacturersByProductIdAsync(int productId, bool showHidden = false);
+        Task<IList<BlogManufacturer>> GetBlogManufacturersByBlogIdAsync(int productId, bool showHidden = false);
 
         /// <summary>
         /// Gets a product manufacturer mapping 

@@ -485,10 +485,14 @@ namespace Nop.Web.Infrastructure
                 pattern: $"catalog/getcatalogsubcategories",
                 defaults: new { controller = "Catalog", action = "GetCatalogSubCategories" });
 
+
             //Catalog products (AJAX)
             endpointRouteBuilder.MapControllerRoute(name: "GetCategoryProducts",
                 pattern: $"category/products/",
                 defaults: new { controller = "Catalog", action = "GetCategoryProducts" });
+            endpointRouteBuilder.MapControllerRoute(name: "GetCategoryBlogs",
+                pattern: $"category/blogs/",
+                defaults: new { controller = "Catalog", action = "GetCategoryBlogs" });
 
             endpointRouteBuilder.MapControllerRoute(name: "GetManufacturerProducts",
                 pattern: $"manufacturer/products/",

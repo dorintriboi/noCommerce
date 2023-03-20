@@ -5,17 +5,25 @@ using System.Threading.Tasks;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
+using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Media;
+using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
+using Nop.Core.Domain.Seo;
+using Nop.Core.Domain.Vendors;
 using Nop.Services.Blogs;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Helpers;
+using Nop.Services.Localization;
 using Nop.Services.Media;
+using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Blogs;
+using Nop.Web.Models.Catalog;
+using Nop.Web.Models.Media;
 
 namespace Nop.Web.Factories
 {
@@ -25,8 +33,10 @@ namespace Nop.Web.Factories
     public partial class BlogModelFactory : IBlogModelFactory
     {
         #region Fields
-
+        private readonly SeoSettings _seoSettings;
         private readonly BlogSettings _blogSettings;
+        private readonly IWebHelper _webHelper;
+        private readonly CatalogSettings _catalogSettings;
         private readonly CaptchaSettings _captchaSettings;
         private readonly CustomerSettings _customerSettings;
         private readonly IBlogService _blogService;
@@ -39,6 +49,9 @@ namespace Nop.Web.Factories
         private readonly IUrlRecordService _urlRecordService;
         private readonly IWorkContext _workContext;
         private readonly MediaSettings _mediaSettings;
+        private readonly ILocalizationService _localizationService;
+        private readonly VendorSettings _vendorSettings;
+        private readonly IVideoService _videoService;
 
         #endregion
 
@@ -46,7 +59,10 @@ namespace Nop.Web.Factories
 
         public BlogModelFactory(BlogSettings blogSettings,
             CaptchaSettings captchaSettings,
-            CustomerSettings customerSettings,
+            IWebHelper webHelper,
+            SeoSettings seoSettings,
+            IVideoService _videoService,
+            ILocalizationService localizationService,
             IBlogService blogService,
             ICustomerService customerService,
             IDateTimeHelper dateTimeHelper,
@@ -56,11 +72,17 @@ namespace Nop.Web.Factories
             IStoreContext storeContext,
             IUrlRecordService urlRecordService,
             IWorkContext workContext,
+            VendorSettings vendorSettings,
             MediaSettings mediaSettings)
         {
+            _vendorSettings = vendorSettings;
+            _seoSettings = seoSettings;
+            _webHelper = webHelper;
+            _localizationService = localizationService;
+           
             _blogSettings = blogSettings;
             _captchaSettings = captchaSettings;
-            _customerSettings = customerSettings;
+         
             _blogService = blogService;
             _customerService = customerService;
             _dateTimeHelper = dateTimeHelper;
@@ -129,6 +151,386 @@ namespace Nop.Web.Factories
                     model.Comments.Add(commentModel);
                 }
             }
+        }
+        public virtual async Task<IEnumerable<BlogOverviewModel>> PrepareBlogOverviewModelsAsync(IEnumerable<BlogPost> products,
+            bool preparePriceModel = true, bool preparePictureModel = true,
+            int? productThumbPictureSize = null, bool prepareSpecificationAttributes = false,
+            bool forceRedirectionAfterAddingToCart = false)
+        {
+            if (products == null)
+                throw new ArgumentNullException(nameof(products));
+
+            var models = new List<BlogOverviewModel>();
+            foreach (var product in products)
+            {
+                var model = new BlogOverviewModel
+                {
+                    Id = product.Id,
+                    Name = product.Title,
+                    ShortDescription = product.MetaDescription,
+                    SeName = await _urlRecordService.GetSeNameAsync(product)
+                };
+                
+
+                //picture
+                if (preparePictureModel)
+                {
+                    model.PictureModels = await PrepareBlogOverviewPicturesModelAsync(product, productThumbPictureSize);
+                }
+                
+
+                //reviews
+                model.ReviewOverviewModel = await PrepareBlogReviewOverviewModelAsync(product);
+
+                models.Add(model);
+            }
+
+            return models;
+        }
+        protected virtual async Task<BlogReviewOverviewModel> PrepareBlogReviewOverviewModelAsync(BlogPost product)
+        {
+            BlogReviewOverviewModel productReview = null;
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
+            if (_catalogSettings.ShowProductReviewsPerStore)
+            {
+                var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogReviewsModelKey,
+                    product, currentStore);
+
+                productReview = await _staticCacheManager.GetAsync(cacheKey, async () =>
+                {
+                    var productReviews = await _blogService.GetAllBlogReviewsAsync(productId: product.Id,
+                        approved: true, storeId: currentStore.Id);
+
+                    return new BlogReviewOverviewModel
+                    {
+                        RatingSum = productReviews.Sum(pr => pr.Rating), TotalReviews = productReviews.Count
+                    };
+                });
+
+                if (productReview != null)
+                {
+                    productReview.BlogId = product.Id;
+                }
+            }
+
+            return productReview;
+        }
+        
+         protected virtual async Task<IList<PictureModel>> PrepareBlogOverviewPicturesModelAsync(BlogPost product, int? productThumbPictureSize = null)
+        {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
+            var productName = product.Title;
+            //If a size has been set in the view, we use it in priority
+            var pictureSize = productThumbPictureSize ?? _mediaSettings.ProductThumbPictureSize;
+
+            //prepare picture model
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.ProductOverviewPicturesModelKey, 
+                product, pictureSize, true, _catalogSettings.DisplayAllPicturesOnCatalogPages, await _workContext.GetWorkingLanguageAsync(), 
+                _webHelper.IsCurrentConnectionSecured(), await _storeContext.GetCurrentStoreAsync());
+
+            var cachedPictures = await _staticCacheManager.GetAsync(cacheKey, async () =>
+            {
+                async Task<PictureModel> preparePictureModelAsync(Picture picture)
+                {
+                    //we have to keep the url generation order "full size -> preview" because picture can be updated twice
+                    //this section of code requires detailed analysis in the future
+                    (var fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture);
+                    (var imageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture, pictureSize);
+
+                    return new PictureModel
+                    {
+                        ImageUrl = imageUrl,
+                        FullSizeImageUrl = fullSizeImageUrl,
+                        //"title" attribute
+                        Title = (picture != null && !string.IsNullOrEmpty(picture.TitleAttribute))
+                            ? picture.TitleAttribute
+                            : string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageLinkTitleFormat"),
+                                productName),
+                        //"alt" attribute
+                        AlternateText = (picture != null && !string.IsNullOrEmpty(picture.AltAttribute))
+                            ? picture.AltAttribute
+                            : string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageAlternateTextFormat"),
+                                productName)
+                    };
+                }
+
+                //all pictures
+                var pictures = (await _pictureService
+                    .GetPicturesByProductIdAsync(product.Id,  _catalogSettings.DisplayAllPicturesOnCatalogPages ? 0 : 1))
+                    .DefaultIfEmpty(null);
+                var pictureModels = await pictures
+                    .SelectAwait(async picture => await preparePictureModelAsync(picture))
+                    .ToListAsync();
+                return pictureModels;
+            });
+
+            return cachedPictures;
+        }
+         /*public virtual async Task<BlogDetailsModel> PrepareBlogDetailsModelAsync(BlogPost product,
+            ShoppingCartItem updatecartitem = null, bool isAssociatedProduct = false)
+        {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
+            //standard properties
+            var model = new BlogDetailsModel
+            {
+                Id = product.Id,
+                Name = product.Title,/**/
+                /*ShortDescription = product.MetaDescription,
+                MetaKeywords =product.MetaKeywords,
+                MetaDescription =  product.MetaDescription,
+                MetaTitle = product.MetaTitle,
+                SeName = await _urlRecordService.GetSeNameAsync(product),
+                ShowManufacturerPartNumber = _catalogSettings.ShowManufacturerPartNumber,
+                FreeShippingNotificationEnabled = _catalogSettings.ShowFreeShippingNotification,
+                ShowGtin = _catalogSettings.ShowGtin,
+                DisplayDiscontinuedMessage =  _catalogSettings.DisplayDiscontinuedMessageForUnpublishedProducts
+            };
+
+            //automatically generate product description?
+            if (_seoSettings.GenerateProductMetaDescription && string.IsNullOrEmpty(model.MetaDescription))
+            {
+                //based on short description
+                model.MetaDescription = model.ShortDescription;
+            }
+            
+
+            var store = await _storeContext.GetCurrentStoreAsync();
+            //email a friend
+            model.EmailAFriendEnabled = _catalogSettings.EmailAFriendEnabled;
+            //compare products
+            model.CompareProductsEnabled = _catalogSettings.CompareProductsEnabled;
+            //store name
+            model.CurrentStoreName = await _localizationService.GetLocalizedAsync(store, x => x.Name);
+            
+
+            //page sharing
+            if (_catalogSettings.ShowShareButton && !string.IsNullOrEmpty(_catalogSettings.PageShareCode))
+            {
+                var shareCode = _catalogSettings.PageShareCode;
+                if (_webHelper.IsCurrentConnectionSecured())
+                {
+                    //need to change the add this link to be https linked when the page is, so that the page doesn't ask about mixed mode when viewed in https...
+                    shareCode = shareCode.Replace("http://", "https://");
+                }
+
+                model.PageShareCode = shareCode;
+            }
+
+            
+            
+
+            //pictures and videos
+            model.DefaultPictureZoomEnabled = _mediaSettings.DefaultPictureZoomEnabled;
+            IList<PictureModel> allPictureModels;
+            IList<VideoModel> allVideoModels;
+            (model.DefaultPictureModel, allPictureModels, allVideoModels) = await PrepareProductDetailsPictureModelAsync(product, isAssociatedProduct);
+            model.PictureModels = allPictureModels;
+            model.VideoModels = allVideoModels;
+
+            //price
+            model.ProductPrice = await PrepareProductPriceModelAsync(product);
+
+            //'Add to cart' model
+            model.AddToCart = await PrepareProductAddToCartModelAsync(product, updatecartitem);
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            //gift card
+            if (product.IsGiftCard)
+            {
+                model.GiftCard.IsGiftCard = true;
+                model.GiftCard.GiftCardType = product.GiftCardType;
+
+                if (updatecartitem == null)
+                {
+                    model.GiftCard.SenderName = await _customerService.GetCustomerFullNameAsync(customer);
+                    model.GiftCard.SenderEmail = customer.Email;
+                }
+                else
+                {
+                    _productAttributeParser.GetGiftCardAttribute(updatecartitem.AttributesXml,
+                        out var giftCardRecipientName, out var giftCardRecipientEmail,
+                        out var giftCardSenderName, out var giftCardSenderEmail, out var giftCardMessage);
+
+                    model.GiftCard.RecipientName = giftCardRecipientName;
+                    model.GiftCard.RecipientEmail = giftCardRecipientEmail;
+                    model.GiftCard.SenderName = giftCardSenderName;
+                    model.GiftCard.SenderEmail = giftCardSenderEmail;
+                    model.GiftCard.Message = giftCardMessage;
+                }
+            }
+
+            //product attributes
+            model.ProductAttributes = await PrepareProductAttributeModelsAsync(product, updatecartitem);
+
+            //product specifications
+            //do not prepare this model for the associated products. anyway it's not used
+            if (!isAssociatedProduct)
+            {
+                model.ProductSpecificationModel = await PrepareProductSpecificationModelAsync(product);
+            }
+
+            //product review overview
+            model.ProductReviewOverview = await PrepareProductReviewOverviewModelAsync(product);
+
+            model.ProductReviews = await PrepareProductReviewsModelAsync(product);
+
+            //tier prices
+            if (product.HasTierPrices && await _permissionService.AuthorizeAsync(StandardPermissionProvider.DisplayPrices))
+            {
+                model.TierPrices = await PrepareProductTierPriceModelsAsync(product);
+            }
+
+            //manufacturers
+            model.ProductManufacturers = await PrepareProductManufacturerModelsAsync(product);
+
+            //rental products
+            if (product.IsRental)
+            {
+                model.IsRental = true;
+                //set already entered dates attributes (if we're going to update the existing shopping cart item)
+                if (updatecartitem != null)
+                {
+                    model.RentalStartDate = updatecartitem.RentalStartDateUtc;
+                    model.RentalEndDate = updatecartitem.RentalEndDateUtc;
+                }
+            }
+
+            //estimate shipping
+            if (_shippingSettings.EstimateShippingProductPageEnabled && !model.IsFreeShipping)
+            {
+                var wrappedProduct = new ShoppingCartItem
+                {
+                    StoreId = store.Id,
+                    ShoppingCartTypeId = (int)ShoppingCartType.ShoppingCart,
+                    CustomerId = customer.Id,
+                    ProductId = product.Id,
+                    CreatedOnUtc = DateTime.UtcNow
+                };
+
+                var estimateShippingModel = await _shoppingCartModelFactory.PrepareEstimateShippingModelAsync(new[] { wrappedProduct });
+
+                model.ProductEstimateShipping.ProductId = product.Id;
+                model.ProductEstimateShipping.RequestDelay = estimateShippingModel.RequestDelay;
+                model.ProductEstimateShipping.Enabled = estimateShippingModel.Enabled;
+                model.ProductEstimateShipping.CountryId = estimateShippingModel.CountryId;
+                model.ProductEstimateShipping.StateProvinceId = estimateShippingModel.StateProvinceId;
+                model.ProductEstimateShipping.ZipPostalCode = estimateShippingModel.ZipPostalCode;
+                model.ProductEstimateShipping.UseCity = estimateShippingModel.UseCity;
+                model.ProductEstimateShipping.City = estimateShippingModel.City;
+                model.ProductEstimateShipping.AvailableCountries = estimateShippingModel.AvailableCountries;
+                model.ProductEstimateShipping.AvailableStates = estimateShippingModel.AvailableStates;
+            }
+
+            //associated products
+            if (product.ProductType == ProductType.GroupedProduct)
+            {
+                //ensure no circular references
+                if (!isAssociatedProduct)
+                {
+                    var associatedProducts = await _productService.GetAssociatedProductsAsync(product.Id, store.Id);
+                    foreach (var associatedProduct in associatedProducts)
+                        model.AssociatedProducts.Add(await PrepareProductDetailsModelAsync(associatedProduct, null, true));
+                }
+                model.InStock = model.AssociatedProducts.Any(associatedProduct => associatedProduct.InStock);
+            }
+
+            return model;
+        }
+        #1#*/
+         
+          protected virtual async Task<(PictureModel pictureModel, IList<PictureModel> allPictureModels, IList<VideoModel> allVideoModels)> PrepareBlogDetailsPictureModelAsync(BlogPost product, bool isAssociatedProduct)
+        {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
+            //default picture size
+            var defaultPictureSize = isAssociatedProduct ?
+                _mediaSettings.AssociatedProductPictureSize :
+                _mediaSettings.ProductDetailsPictureSize;
+
+            //prepare picture models
+            var productPicturesCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogDetailsPicturesModelKey
+                , product, defaultPictureSize, isAssociatedProduct, 
+                await _workContext.GetWorkingLanguageAsync(), _webHelper.IsCurrentConnectionSecured(), await _storeContext.GetCurrentStoreAsync());
+            var cachedPictures = await _staticCacheManager.GetAsync(productPicturesCacheKey, async () =>
+            {
+                var productName = product.Title;
+
+                var pictures = await _pictureService.GetPicturesByProductIdAsync(product.Id);
+                var defaultPicture = pictures.FirstOrDefault();
+
+                (var fullSizeImageUrl, defaultPicture) = await _pictureService.GetPictureUrlAsync(defaultPicture, 0, !isAssociatedProduct);
+                (var imageUrl, defaultPicture) = await _pictureService.GetPictureUrlAsync(defaultPicture, defaultPictureSize, !isAssociatedProduct);
+
+                var defaultPictureModel = new PictureModel
+                {
+                    ImageUrl = imageUrl,
+                    FullSizeImageUrl = fullSizeImageUrl,
+                    //"title" attribute
+                    Title = (defaultPicture != null && !string.IsNullOrEmpty(defaultPicture.TitleAttribute)) ?
+                        defaultPicture.TitleAttribute :
+                        string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageLinkTitleFormat.Details"), productName),
+                    //"alt" attribute
+                    AlternateText = (defaultPicture != null && !string.IsNullOrEmpty(defaultPicture.AltAttribute)) ?
+                        defaultPicture.AltAttribute :
+                        string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageAlternateTextFormat.Details"), productName)
+                };
+
+                //all pictures
+                var pictureModels = new List<PictureModel>();
+                for (var i = 0; i < pictures.Count; i++ )
+                {
+                    var picture = pictures[i];
+
+                    (fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture);
+                    (imageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture, defaultPictureSize, !isAssociatedProduct);
+                    (var thumbImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture, _mediaSettings.ProductThumbPictureSizeOnProductDetailsPage);
+
+                    var pictureModel = new PictureModel
+                    {
+                        ImageUrl = imageUrl,
+                        ThumbImageUrl = thumbImageUrl,
+                        FullSizeImageUrl = fullSizeImageUrl,
+                        Title = string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageLinkTitleFormat.Details"), productName),
+                        AlternateText = string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageAlternateTextFormat.Details"), productName),
+                    };
+                    //"title" attribute
+                    pictureModel.Title = !string.IsNullOrEmpty(picture.TitleAttribute) ?
+                        picture.TitleAttribute :
+                        string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageLinkTitleFormat.Details"), productName);
+                    //"alt" attribute
+                    pictureModel.AlternateText = !string.IsNullOrEmpty(picture.AltAttribute) ?
+                        picture.AltAttribute :
+                        string.Format(await _localizationService.GetResourceAsync("Media.Product.ImageAlternateTextFormat.Details"), productName);
+
+                    pictureModels.Add(pictureModel);
+                }
+
+                return new { DefaultPictureModel = defaultPictureModel, PictureModels = pictureModels };
+            });
+
+            var allPictureModels = cachedPictures.PictureModels;
+            
+            //all videos
+            var allvideoModels = new List<VideoModel>();
+            var videos = await _videoService.GetVideosByProductIdAsync(product.Id);
+            foreach (var video in videos)
+            {
+                var videoModel = new VideoModel
+                {
+                    VideoUrl = video.VideoUrl,
+                    Allow = _mediaSettings.VideoIframeAllow,
+                    Width = _mediaSettings.VideoIframeWidth,
+                    Height = _mediaSettings.VideoIframeHeight
+                };
+
+                allvideoModels.Add(videoModel);
+            }
+            return (cachedPictures.DefaultPictureModel, allPictureModels, allvideoModels);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nop.Core;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
@@ -202,6 +203,7 @@ namespace Nop.Services.Catalog
         /// The task result contains the product category mapping collection
         /// </returns>
         Task<IList<ProductCategory>> GetProductCategoriesByProductIdAsync(int productId, bool showHidden = false);
+        Task<IList<BlogCategoryBlogPost>> GetBlogCategoriesByBlogPostIdAsync(int productId, bool showHidden = false);
 
         /// <summary>
         /// Gets a product category mapping 
@@ -292,5 +294,6 @@ namespace Nop.Services.Catalog
         /// The task result contains the category breadcrumb 
         /// </returns>
         Task<IList<Category>> GetCategoryBreadCrumbAsync(Category category, IList<Category> allCategories = null, bool showHidden = false);
+        Task<IList<BlogCategory>> GetBlogCategoryBreadCrumbAsync(BlogCategory category, IList<BlogCategory> allCategories = null, bool showHidden = false);
     }
 }

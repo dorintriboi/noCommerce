@@ -11,6 +11,7 @@ using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Localization;
 using Nop.Data;
 using Nop.Services.Catalog;
+using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Security;
 using Nop.Services.Stores;
@@ -40,11 +41,15 @@ namespace Nop.Services.Blogs
         private readonly IRepository<BlogCategoryBlogPostTagMapping> _productTagMappingRepository;
         private readonly IRepository<ProductTag> _productTagRepository;
         private readonly IRepository<ProductSpecificationAttribute> _productSpecificationAttributeRepository;
+        private readonly IRepository<BlogReview> _blogReviewRepository;
+        private readonly ICustomerService _customerService;
         #endregion
 
         #region Ctor
 
         public BlogService(
+            ICustomerService customerService,
+            IRepository<BlogReview> blogReviewRepository,
             IRepository<ProductSpecificationAttribute> productSpecificationAttributeRepository,
             IRepository<ProductTag> productTagRepository,
             IRepository<BlogCategoryBlogPostTagMapping> productTagMappingRepository,
@@ -63,6 +68,8 @@ namespace Nop.Services.Blogs
             IRepository<ProductManufacturer> productManufacturerRepository,
             IStoreMappingService storeMappingService)
         {
+            _customerService = customerService;
+            _blogReviewRepository = blogReviewRepository;
             _productSpecificationAttributeRepository = productSpecificationAttributeRepository;
             _productTagRepository = productTagRepository;
             _productTagMappingRepository = productTagMappingRepository;
@@ -97,6 +104,86 @@ namespace Nop.Services.Blogs
         {
             await _blogPostRepository.DeleteAsync(blogPost);
         }
+        public virtual async Task<IPagedList<BlogPost>> GetBlogsMarkedAsNewAsync(int storeId = 0, int pageIndex = 0, int pageSize = int.MaxValue)
+        {
+            var query = from p in _blogPostRepository.Table
+                where  !p.Deleted 
+                select p;
+
+            //apply store mapping constraints
+            query = await _storeMappingService.ApplyStoreMapping(query, storeId);
+
+            //apply ACL constraints
+            var customer = await _workContext.GetCurrentCustomerAsync();
+
+            query = query.OrderByDescending(p => p.CreatedOnUtc);
+
+            return await query.ToPagedListAsync(pageIndex, pageSize);
+        }
+        
+        public virtual async Task<IList<BlogPost>> GetBlogCategoryFeaturedBlogsAsync(int categoryId, int storeId = 0)
+        {
+            IList<BlogPost> featuredProducts = new List<BlogPost>();
+
+            if (categoryId == 0)
+                return featuredProducts;
+
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.BlogCategoryFeaturedBlogsIdsKey, categoryId, customerRoleIds, storeId);
+
+            var featuredProductIds = await _staticCacheManager.GetAsync(cacheKey, async () =>
+            {
+                var query = from p in _blogPostRepository.Table
+                    join pc in _productCategoryRepository.Table on p.Id equals pc.BlogId
+                    where  !p.Deleted  &&
+                           pc.IsFeaturedProduct && categoryId == pc.CategoryId
+                    select p;
+
+                //apply store mapping constraints
+                query = await _storeMappingService.ApplyStoreMapping(query, storeId);
+                
+                featuredProducts = query.ToList();
+
+                return featuredProducts.Select(p => p.Id).ToList();
+            });
+
+            if (featuredProducts.Count == 0 && featuredProductIds.Count > 0)
+                featuredProducts = await _blogPostRepository.GetByIdsAsync(featuredProductIds, cache => default, false);
+
+            return featuredProducts;
+        }
+
+        public virtual async Task<int> GetNumberOfBlogsInBlogCategoryAsync(IList<int> categoryIds = null, int storeId = 0)
+        {
+            //validate "categoryIds" parameter
+            if (categoryIds != null && categoryIds.Contains(0))
+                categoryIds.Remove(0);
+
+            var query = _blogPostRepository.Table.Where(p=>  !p.Deleted);
+
+            //apply store mapping constraints
+            query = await _storeMappingService.ApplyStoreMapping(query, storeId);
+
+            //apply ACL constraints
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+
+            //category filtering
+            if (categoryIds != null && categoryIds.Any())
+            {
+                query = from p in query
+                    join pc in _productCategoryRepository.Table on p.Id equals pc.BlogId
+                    where categoryIds.Contains(pc.CategoryId)
+                    select p;
+            }
+
+            var cacheKey = _staticCacheManager
+                .PrepareKeyForDefaultCache(NopCatalogDefaults.CategoryProductsNumberCacheKey, customerRoleIds, storeId, categoryIds);
+
+            //only distinct products
+            return await _staticCacheManager.GetAsync(cacheKey, () => query.Select(p => p.Id).Count());
+        }
 
         /// <summary>
         /// Gets a blog post
@@ -110,12 +197,64 @@ namespace Nop.Services.Blogs
         {
             return await _blogPostRepository.GetByIdAsync(blogPostId, cache => default);
         }
+        
+         public virtual async Task<IPagedList<BlogReview>> GetAllBlogReviewsAsync(int customerId = 0, bool? approved = null,
+            DateTime? fromUtc = null, DateTime? toUtc = null,
+            string message = null, int storeId = 0, int productId = 0, int vendorId = 0, bool showHidden = false,
+            int pageIndex = 0, int pageSize = int.MaxValue)
+        {
+            var productReviews = await _blogReviewRepository.GetAllPagedAsync(async query =>
+            {
+                if (!showHidden)
+                {
+                    var productsQuery = _blogPostRepository.Table;
+
+                    //apply store mapping constraints
+                    productsQuery = await _storeMappingService.ApplyStoreMapping(productsQuery, storeId);
+
+                    //apply ACL constraints
+                    var customer = await _workContext.GetCurrentCustomerAsync();
+
+                    query = query.Where(review => productsQuery.Any(product => product.Id == review.BlogId));
+                }
+
+                if (approved.HasValue)
+                    query = query.Where(pr => pr.IsApproved == approved);
+                if (customerId > 0)
+                    query = query.Where(pr => pr.CustomerId == customerId);
+                if (fromUtc.HasValue)
+                    query = query.Where(pr => fromUtc.Value <= pr.CreatedOnUtc);
+                if (toUtc.HasValue)
+                    query = query.Where(pr => toUtc.Value >= pr.CreatedOnUtc);
+                if (!string.IsNullOrEmpty(message))
+                    query = query.Where(pr => pr.Title.Contains(message) || pr.ReviewText.Contains(message));
+                if (storeId > 0)
+                    query = query.Where(pr => pr.StoreId == storeId);
+                if (productId > 0)
+                    query = query.Where(pr => pr.BlogId == productId);
+
+                query = from productReview in query
+                        join blog in _blogPostRepository.Table on productReview.BlogId equals blog.Id
+                        where
+                            !blog.Deleted
+                        select productReview;
+
+                query = _catalogSettings.ProductReviewsSortByCreatedDateAscending
+                    ? query.OrderBy(pr => pr.CreatedOnUtc).ThenBy(pr => pr.Id)
+                    : query.OrderByDescending(pr => pr.CreatedOnUtc).ThenBy(pr => pr.Id);
+
+                return query;
+            }, pageIndex, pageSize);
+
+            return productReviews;
+        }
 
         public async Task<IList<BlogPost>> GetBlogsByIdsAsync(int[] blogIds)
         {
             return await _blogPostRepository.GetByIdsAsync(blogIds, cache => default, false);
         }
-           public virtual async Task<IPagedList<BlogPost>> SearchBlogsAsync(
+
+        public virtual async Task<IPagedList<BlogPost>> SearchBlogsAsync(
                int pageIndex = 0,
                int pageSize = int.MaxValue,
                IList<int> categoryIds = null,
@@ -136,7 +275,7 @@ namespace Nop.Services.Blogs
                bool searchProductTags = false,
                int languageId = 0,
                IList<SpecificationAttributeOption> filteredSpecOptions = null,
-               ProductSortingEnum orderBy = ProductSortingEnum.Position,
+               BlogSortingEnum orderBy = BlogSortingEnum.Position,
                bool showHidden = false,
                bool? overridePublished = null)
         {
@@ -506,6 +645,20 @@ namespace Nop.Services.Blogs
         public virtual async Task InsertBlogPostAsync(BlogPost blogPost)
         {
             await _blogPostRepository.InsertAsync(blogPost);
+        }
+
+        public async Task<BlogPost> GetBlogByIdAsync(int productId)
+        {
+            return await _blogPostRepository.GetByIdAsync(productId, cache => default);
+        }
+        public virtual bool BlogIsAvailable(BlogPost product, DateTime? dateTime = null)
+        {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
+            dateTime ??= DateTime.UtcNow;
+            
+            return true;
         }
 
         /// <summary>
