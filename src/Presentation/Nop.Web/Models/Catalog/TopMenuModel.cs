@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Nop.Web.Framework.Models;
+using Nop.Web.Models.Blogs;
 
 namespace Nop.Web.Models.Catalog
 {
@@ -9,10 +10,12 @@ namespace Nop.Web.Models.Catalog
         public TopMenuModel()
         {
             Categories = new List<CategorySimpleModel>();
+            BlogCategories = new List<BlogCategorySimpleModel>();
             Topics = new List<TopicModel>();
         }
 
         public IList<CategorySimpleModel> Categories { get; set; }
+        public IList<BlogCategorySimpleModel> BlogCategories { get; set; }
         public IList<TopicModel> Topics { get; set; }
 
         public bool BlogEnabled { get; set; }
@@ -54,6 +57,12 @@ namespace Nop.Web.Models.Catalog
             public CategorySimpleModel Category { get; set; }
         }
 
+        public partial record BlogCategoryLineModel : BaseNopModel
+        {
+            public int Level { get; set; }
+            public bool ResponsiveMobileMenu { get; set; }
+            public BlogCategorySimpleModel BlogCategory { get; set; }
+        }
         #endregion
     }
 }

@@ -1,0 +1,141 @@
+﻿@model AddBlogToCategorySearchModel
+
+@{
+    Layout = "_AdminPopupLayout";
+
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.BlogCategories.Products.AddNew").Text;
+}
+
+@if (ViewBag.RefreshPage == true)
+{
+    <script>
+        try {window.opener.document.forms['@(Context.Request.Query["formId"])'].@(Context.Request.Query["btnId"]).click();}
+        catch (e){}
+        window.close();
+    </script>
+}
+else
+{
+    <form asp-controller="BlogCategory" asp-action="BlogAddPopup"
+          asp-route-categoryId="@Context.Request.Query["categoryId"]"
+          asp-route-btnId="@Context.Request.Query["btnId"]"
+          asp-route-formId="@Context.Request.Query["formId"]">
+        <div class="content-header clearfix">
+            <h1 class="float-left">
+                @T("Admin.Catalog.BlogCategories.Products.AddNew")
+            </h1>
+            <div class="float-right">
+                &nbsp;
+            </div>
+        </div>
+         <section class="content">
+            <div class="container-fluid">
+                <div class="form-horizontal">
+                    <div class="cards-group">
+                        <div class="card card-default card-search card-popup">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group row">
+                                            <div class="col-sm-5">
+                                                <nop-label asp-for="SearchBlogName" />
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <nop-editor asp-for="SearchBlogName" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                            <div class="col-sm-5">
+                                                <nop-label asp-for="SearchCategoryId" />
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <nop-select asp-for="SearchCategoryId" asp-items="Model.AvailableCategories" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row" @(Model.AvailableVendors.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                            <div class="col-sm-5">
+                                                <nop-label asp-for="SearchVendorId" />
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <nop-select asp-for="SearchVendorId" asp-items="Model.AvailableVendors" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group row" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                            <div class="col-sm-5">
+                                                <nop-label asp-for="SearchStoreId" />
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <nop-select asp-for="SearchStoreId" asp-items="Model.AvailableStores" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                            <div class="col-sm-5">
+                                                <nop-label asp-for="SearchManufacturerId" />
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <nop-select asp-for="SearchManufacturerId" asp-items="Model.AvailableManufacturers" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <button type="button" id="search-products" class="btn btn-primary btn-search">
+                                            <i class="fas fa-search"></i>
+                                            @T("Admin.Common.Search")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card card-default">
+                            <div class="card-body">
+                                @await Html.PartialAsync("Table", new DataTablesModel
+                                {
+                                    Name = "blogs-grid",
+                                    UrlRead = new DataUrl("BlogAddPopupList", "BlogCategory", null),
+                                    SearchButtonId = "search-products",
+                                    Length = Model.PageSize,
+                                    LengthMenu = Model.AvailablePageSizes,
+                                    Filters = new List<FilterParameter>
+                                    {
+                                        new FilterParameter(nameof(Model.SearchBlogName)),
+                                        new FilterParameter(nameof(Model.SearchCategoryId)),
+                                        new FilterParameter(nameof(Model.SearchManufacturerId)),
+                                        new FilterParameter(nameof(Model.SearchStoreId)),
+                                        new FilterParameter(nameof(Model.SearchVendorId)),
+                                        new FilterParameter(nameof(Model.SearchBlogTypeId))
+                                    },
+                                    ColumnCollection = new List<ColumnProperty>
+                                    {
+                                        new ColumnProperty(nameof(BlogPostModel.Id))
+                                        {
+                                            IsMasterCheckBox = true,
+                                            Render = new RenderCheckBox(nameof(AddBlogToCategoryModel.SelectedBlogsIds)),
+                                            ClassName = NopColumnClassDefaults.CenterAll,
+                                            Width = "50"
+                                        },
+                                        new ColumnProperty(nameof(BlogPostModel.Title))
+                                        {
+                                            Title = T("Admin.Catalog.Blogs.Fields.Blog").Text
+                                        },
+                                    }
+                                })
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" name="save" class="btn btn-primary">
+                                    <i class="far fa-save"></i>
+                                    @T("Admin.Common.Save")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </form>
+}

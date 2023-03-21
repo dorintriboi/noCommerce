@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nop.Core.Domain.Blogs;
+using Nop.Core.Domain.Orders;
 using Nop.Web.Models.Blogs;
+using Nop.Web.Models.Catalog;
 
 namespace Nop.Web.Factories
 {
@@ -18,7 +20,13 @@ namespace Nop.Web.Factories
         /// <param name="prepareComments">Whether to prepare blog comments</param>
         /// <returns>A task that represents the asynchronous operation</returns>
         Task PrepareBlogPostModelAsync(BlogPostModel model, BlogPost blogPost, bool prepareComments);
+        
+        Task<IEnumerable<BlogOverviewModel>> PrepareBlogOverviewModelsAsync(IEnumerable<BlogPost> products,
+            bool preparePriceModel = true, bool preparePictureModel = true,
+            int? productThumbPictureSize = null, bool prepareSpecificationAttributes = false,
+            bool forceRedirectionAfterAddingToCart = false);
 
+        /*Task<BlogDetailsModel> PrepareBlogDetailsModelAsync(BlogPost product, ShoppingCartItem updatecartitem = null, bool isAssociatedProduct = false);*/
         /// <summary>
         /// Prepare blog post list model
         /// </summary>

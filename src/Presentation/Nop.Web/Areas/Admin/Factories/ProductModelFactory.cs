@@ -974,7 +974,7 @@ namespace Nop.Web.Areas.Admin.Factories
             model.AvailableBasepriceBaseUnits = availableMeasureWeights;
 
             //prepare model categories
-            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories, false);
+            await _baseAdminModelFactory.PrepareCategoriesAsync(model.AvailableCategories);
             foreach (var categoryItem in model.AvailableCategories)
             {
                 categoryItem.Selected = int.TryParse(categoryItem.Value, out var categoryId)
@@ -982,7 +982,7 @@ namespace Nop.Web.Areas.Admin.Factories
             }
 
             //prepare model manufacturers
-            await _baseAdminModelFactory.PrepareManufacturersAsync(model.AvailableManufacturers, false);
+            await _baseAdminModelFactory.PrepareManufacturersAsync(model.AvailableManufacturers );
             foreach (var manufacturerItem in model.AvailableManufacturers)
             {
                 manufacturerItem.Selected = int.TryParse(manufacturerItem.Value, out var manufacturerId)

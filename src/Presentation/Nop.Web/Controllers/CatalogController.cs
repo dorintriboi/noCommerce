@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Rss;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Localization;
@@ -35,6 +37,7 @@ namespace Nop.Web.Controllers
         private readonly IAclService _aclService;
         private readonly ICatalogModelFactory _catalogModelFactory;
         private readonly ICategoryService _categoryService;
+        private readonly IBlogCategoryService _blogCategoryService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly ILocalizationService _localizationService;
@@ -43,6 +46,7 @@ namespace Nop.Web.Controllers
         private readonly IPermissionService _permissionService;
         private readonly IProductModelFactory _productModelFactory;
         private readonly IProductService _productService;
+        private readonly IBlogService _blogService;
         private readonly IProductTagService _productTagService;
         private readonly IStoreContext _storeContext;
         private readonly IStoreMappingService _storeMappingService;
@@ -59,6 +63,8 @@ namespace Nop.Web.Controllers
 
         public CatalogController(CatalogSettings catalogSettings,
             IAclService aclService,
+            IBlogService blogService,
+            IBlogCategoryService blogCategoryService,
             ICatalogModelFactory catalogModelFactory,
             ICategoryService categoryService,
             ICustomerActivityService customerActivityService,
@@ -79,6 +85,8 @@ namespace Nop.Web.Controllers
             MediaSettings mediaSettings,
             VendorSettings vendorSettings)
         {
+            _blogService = blogService;
+            _blogCategoryService = blogCategoryService;
             _catalogSettings = catalogSettings;
             _aclService = aclService;
             _catalogModelFactory = catalogModelFactory;
@@ -136,6 +144,37 @@ namespace Nop.Web.Controllers
             var templateViewPath = await _catalogModelFactory.PrepareCategoryTemplateViewPathAsync(category.CategoryTemplateId);
             return View(templateViewPath, model);
         }
+        
+        public virtual async Task<IActionResult> BlogCategory(int categoryId, CatalogBlogsCommand command)
+        {
+            var category = await _blogCategoryService.GetCategoryByIdAsync(categoryId);
+
+            if (!await CheckBlogCategoryAvailabilityAsync(category))
+                return InvokeHttp404();
+
+            var store = await _storeContext.GetCurrentStoreAsync();
+
+            //'Continue shopping' URL
+            await _genericAttributeService.SaveAttributeAsync(await _workContext.GetCurrentCustomerAsync(),
+                NopCustomerDefaults.LastContinueShoppingPageAttribute,
+                _webHelper.GetThisPageUrl(false),
+                store.Id);
+
+            //display "edit" (manage) link
+            if (await _permissionService.AuthorizeAsync(StandardPermissionProvider.AccessAdminPanel) && await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories))
+                DisplayEditLink(Url.Action("Edit", "BlogCategory", new { id = category.Id, area = AreaNames.Admin }));
+
+            //activity log
+            await _customerActivityService.InsertActivityAsync("PublicStore.ViewCategory",
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.PublicStore.ViewCategory"), category.Name), category);
+
+            //model
+            var model = await _catalogModelFactory.PrepareBlogCategoryModelAsync(category, command);
+
+            //template
+            var templateViewPath = await _catalogModelFactory.PrepareBlogCategoryTemplateViewPathAsync(category.CategoryTemplateId);
+            return View(templateViewPath, model);
+        }
 
         //ignore SEO friendly URLs checks
         [CheckLanguageSeoCode(ignore: true)]
@@ -149,6 +188,19 @@ namespace Nop.Web.Controllers
             var model = await _catalogModelFactory.PrepareCategoryProductsModelAsync(category, command);
 
             return PartialView("_ProductsInGridOrLines", model);
+        }
+        
+        [CheckLanguageSeoCode(ignore: true)]
+        public virtual async Task<IActionResult> GetCategoryBlogs(int categoryId, CatalogBlogsCommand command)
+        {
+            var category = await _blogCategoryService.GetCategoryByIdAsync(categoryId);
+
+            if (!await CheckBlogCategoryAvailabilityAsync(category))
+                return NotFound();
+
+            var model = await _catalogModelFactory.PrepareBlogCategoryBlogPostModelAsync(category, command);
+
+            return PartialView("_BlogsInGridOrLines", model);
         }
 
         [HttpPost]
@@ -340,6 +392,16 @@ namespace Nop.Web.Controllers
 
             return PartialView("_ProductsInGridOrLines", model);
         }
+        
+        public virtual async Task<IActionResult> GetNewBlogs(CatalogBlogsCommand command)
+        {
+            if (!_catalogSettings.NewProductsEnabled)
+                return NotFound();
+
+            var model = await _catalogModelFactory.PrepareNewBlogsModelAsync(command);
+
+            return PartialView("_BlogsInGridOrLines", model);
+        }
 
         [CheckLanguageSeoCode(ignore: true)]
         public virtual async Task<IActionResult> NewProductsRss()
@@ -475,6 +537,32 @@ namespace Nop.Web.Controllers
             //Check whether the current user has a "Manage categories" permission (usually a store owner)
             //We should allows him (her) to use "Preview" functionality
             var hasAdminAccess = await _permissionService.AuthorizeAsync(StandardPermissionProvider.AccessAdminPanel) && await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageCategories);
+            if (notAvailable && !hasAdminAccess)
+                isAvailable = false;
+
+            return isAvailable;
+        }
+        
+        private async Task<bool> CheckBlogCategoryAvailabilityAsync(BlogCategory category)
+        {
+            if (category is null)
+                return false;
+
+            var isAvailable = true;
+
+            if (category.Deleted)
+                isAvailable = false;
+
+            var notAvailable =
+                //published?
+                !category.Published ||
+                //ACL (access control list) 
+                !await _aclService.AuthorizeAsync(category) ||
+                //Store mapping
+                !await _storeMappingService.AuthorizeAsync(category);
+            //Check whether the current user has a "Manage categories" permission (usually a store owner)
+            //We should allows him (her) to use "Preview" functionality
+            var hasAdminAccess = await _permissionService.AuthorizeAsync(StandardPermissionProvider.AccessAdminPanel) && await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageBlogCategories);
             if (notAvailable && !hasAdminAccess)
                 isAvailable = false;
 

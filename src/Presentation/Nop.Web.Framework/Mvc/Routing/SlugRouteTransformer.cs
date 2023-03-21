@@ -30,6 +30,7 @@ namespace Nop.Web.Framework.Mvc.Routing
 
         private readonly CatalogSettings _catalogSettings;
         private readonly ICategoryService _categoryService;
+        private readonly IBlogCategoryService _blogCategoryService;
         private readonly IEventPublisher _eventPublisher;
         private readonly ILanguageService _languageService;
         private readonly IManufacturerService _manufacturerService;
@@ -43,6 +44,7 @@ namespace Nop.Web.Framework.Mvc.Routing
 
         public SlugRouteTransformer(CatalogSettings catalogSettings,
             ICategoryService categoryService,
+            IBlogCategoryService blogCategoryService,
             IEventPublisher eventPublisher,
             ILanguageService languageService,
             IManufacturerService manufacturerService,
@@ -50,6 +52,7 @@ namespace Nop.Web.Framework.Mvc.Routing
             IUrlRecordService urlRecordService,
             LocalizationSettings localizationSettings)
         {
+            _blogCategoryService = blogCategoryService;
             _catalogSettings = catalogSettings;
             _categoryService = categoryService;
             _eventPublisher = eventPublisher;
@@ -123,6 +126,9 @@ namespace Nop.Web.Framework.Mvc.Routing
                 case var name when name.Equals(nameof(Category), StringComparison.InvariantCultureIgnoreCase):
                     RouteToAction(values, "Catalog", "Category", slug, (NopRoutingDefaults.RouteValue.CategoryId, urlRecord.EntityId));
                     return;
+                case var name when name.Equals(nameof(BlogCategory), StringComparison.InvariantCultureIgnoreCase):
+                    RouteToAction(values, "Catalog", "BlogCategory", slug, (NopRoutingDefaults.RouteValue.CategoryId, urlRecord.EntityId));
+                    return;
 
                 case var name when name.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase):
                     RouteToAction(values, "Catalog", "Manufacturer", slug, (NopRoutingDefaults.RouteValue.ManufacturerId, urlRecord.EntityId));
@@ -161,10 +167,14 @@ namespace Nop.Web.Framework.Mvc.Routing
         {
             //ensure it's a product URL record
             if (!urlRecord.EntityName.Equals(nameof(Product), StringComparison.InvariantCultureIgnoreCase))
+                if (!urlRecord.EntityName.Equals(nameof(BlogPost), StringComparison.InvariantCultureIgnoreCase))
                 return false;
+
 
             //if the product URL structure type is product seName only, it will be processed later by a single slug
             if (_catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.Product)
+                return false;
+            if (_catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.Blog)
                 return false;
 
             //get active slug for the product
@@ -183,10 +193,140 @@ namespace Nop.Web.Framework.Mvc.Routing
                 var category = await _categoryService.GetCategoryByIdAsync(productCategory?.CategoryId ?? 0);
                 catalogSeName = category is not null ? await _urlRecordService.GetSeNameAsync(category) : string.Empty;
             }
+            
+            var isBlogCategoryProductUrl = _catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.BlogCategory;
+            if (isCategoryProductUrl)
+            {
+                var productCategory = (await _blogCategoryService.GetProductCategoriesByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var category = await _blogCategoryService.GetCategoryByIdAsync(productCategory?.CategoryId ?? 0);
+                catalogSeName = category is not null ? await _urlRecordService.GetSeNameAsync(category) : string.Empty;
+            }
+            
             var isManufacturerProductUrl = _catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.ManufacturerProduct;
             if (isManufacturerProductUrl)
             {
                 var productManufacturer = (await _manufacturerService.GetProductManufacturersByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
+                catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
+            }
+            
+            var isManufacturerBlogUrl = _catalogSettings.ProductUrlStructureTypeId == (int)BlogUrlStructureType.ManufacturerBlog;
+            if (isManufacturerProductUrl)
+            {
+                var productManufacturer = (await _manufacturerService.GetBlogManufacturersByBlogIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
+                catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
+            }
+            
+            
+            if (string.IsNullOrEmpty(catalogSeName))
+                return false;
+
+            //get URL record by the specified catalog path
+            var catalogUrlRecord = await _urlRecordService.GetBySlugAsync(catalogPath);
+            if (catalogUrlRecord is null ||
+                (isCategoryProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Category), StringComparison.InvariantCultureIgnoreCase)) ||
+                (isManufacturerProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase)) ||
+                !urlRecord.IsActive)
+            {
+                //permanent redirect to new URL with active catalog seName and active slug
+                InternalRedirect(httpContext, values, $"/{catalogSeName}/{slug}", true);
+                return true;
+            }
+            
+            var catalogBlogUrlRecord = await _urlRecordService.GetBySlugAsync(catalogPath);
+            if (catalogBlogUrlRecord is null ||
+                (isCategoryProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(BlogCategory), StringComparison.InvariantCultureIgnoreCase)) ||
+                (isManufacturerProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase)) ||
+                !urlRecord.IsActive)
+            {
+                //permanent redirect to new URL with active catalog seName and active slug
+                InternalRedirect(httpContext, values, $"/{catalogSeName}/{slug}", true);
+                return true;
+            }
+
+            
+            
+            
+
+            //ensure the catalog seName and slug are the same for the current language
+            if (_localizationSettings.SeoFriendlyUrlsForLanguagesEnabled && values.TryGetValue(NopRoutingDefaults.RouteValue.Language, out var langValue))
+            {
+                var store = await _storeContext.GetCurrentStoreAsync();
+                var languages = await _languageService.GetAllLanguagesAsync(storeId: store.Id);
+                var language = languages
+                    .FirstOrDefault(lang => lang.Published && lang.UniqueSeoCode.Equals(langValue?.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    ?? languages.FirstOrDefault();
+
+                var slugLocalized = await _urlRecordService.GetActiveSlugAsync(urlRecord.EntityId, urlRecord.EntityName, language.Id);
+                var catalogSlugLocalized = await _urlRecordService.GetActiveSlugAsync(catalogUrlRecord.EntityId, catalogUrlRecord.EntityName, language.Id);
+                if ((!string.IsNullOrEmpty(slugLocalized) && !slugLocalized.Equals(slug, StringComparison.InvariantCultureIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(catalogSlugLocalized) && !catalogSlugLocalized.Equals(catalogUrlRecord.Slug, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    //redirect to localized URL for the current language
+                    var activeSlug = !string.IsNullOrEmpty(slugLocalized) ? slugLocalized : slug;
+                    var activeCatalogSlug = !string.IsNullOrEmpty(catalogSlugLocalized) ? catalogSlugLocalized : catalogUrlRecord.Slug;
+                    InternalRedirect(httpContext, values, $"/{language.UniqueSeoCode}/{activeCatalogSlug}/{activeSlug}", false);
+                    return true;
+                }
+            }
+
+            //ensure the specified catalog path is equal to the active catalog seName
+            //we do it here after localization check to avoid double redirect
+            if (!catalogSeName.Equals(catalogUrlRecord.Slug, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //permanent redirect to new URL with active catalog seName and active slug
+                InternalRedirect(httpContext, values, $"/{catalogSeName}/{slug}", true);
+                return true;
+            }
+
+            //all is ok, so select the appropriate action
+            if (!urlRecord.EntityName.Equals(nameof(BlogPost), StringComparison.InvariantCultureIgnoreCase))
+            {
+                RouteToAction(values, "Product", "ProductDetails", slug,
+                    (NopRoutingDefaults.RouteValue.ProductId, urlRecord.EntityId), (NopRoutingDefaults.RouteValue.CatalogSeName, catalogSeName));
+                return true;
+            }
+            else
+            {
+                RouteToAction(values, "BlogPost", "BlogDetails", slug,
+                    (NopRoutingDefaults.RouteValue.ProductId, urlRecord.EntityId), (NopRoutingDefaults.RouteValue.CatalogSeName, catalogSeName));
+                return true;
+            }
+            
+        }
+        
+        
+        protected virtual async Task<bool> TryBlogCatalogRoutingAsync(HttpContext httpContext, RouteValueDictionary values, UrlRecord urlRecord, string catalogPath)
+        {
+            //ensure it's a product URL record
+            if (!urlRecord.EntityName.Equals(nameof(BlogPost), StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            //if the product URL structure type is product seName only, it will be processed later by a single slug
+            if (_catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.Blog)
+                return false;
+
+            //get active slug for the product
+            var slug = urlRecord.IsActive
+                ? urlRecord.Slug
+                : await _urlRecordService.GetActiveSlugAsync(urlRecord.EntityId, urlRecord.EntityName, urlRecord.LanguageId);
+            if (string.IsNullOrEmpty(slug))
+                return false;
+
+            //try to get active catalog (e.g. category or manufacturer) seName for the product
+            var catalogSeName = string.Empty;
+            var isCategoryProductUrl = _catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.BlogCategory;
+            if (isCategoryProductUrl)
+            {
+                var productCategory = (await _blogCategoryService.GetProductCategoriesByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var category = await _blogCategoryService.GetCategoryByIdAsync(productCategory?.CategoryId ?? 0);
+                catalogSeName = category is not null ? await _urlRecordService.GetSeNameAsync(category) : string.Empty;
+            }
+            var isManufacturerProductUrl = _catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.ManufacturerBlog;
+            if (isManufacturerProductUrl)
+            {
+                var productManufacturer = (await _manufacturerService.GetBlogManufacturersByBlogIdAsync(urlRecord.EntityId)).FirstOrDefault();
                 var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
                 catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
             }
@@ -196,7 +336,7 @@ namespace Nop.Web.Framework.Mvc.Routing
             //get URL record by the specified catalog path
             var catalogUrlRecord = await _urlRecordService.GetBySlugAsync(catalogPath);
             if (catalogUrlRecord is null ||
-                (isCategoryProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Category), StringComparison.InvariantCultureIgnoreCase)) ||
+                (isCategoryProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(BlogCategory), StringComparison.InvariantCultureIgnoreCase)) ||
                 (isManufacturerProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase)) ||
                 !urlRecord.IsActive)
             {
@@ -237,10 +377,11 @@ namespace Nop.Web.Framework.Mvc.Routing
             }
 
             //all is ok, so select the appropriate action
-            RouteToAction(values, "Product", "ProductDetails", slug,
+            RouteToAction(values, "Blog", "BlogDetails", slug,
                 (NopRoutingDefaults.RouteValue.ProductId, urlRecord.EntityId), (NopRoutingDefaults.RouteValue.CatalogSeName, catalogSeName));
             return true;
         }
+        
 
         /// <summary>
         /// Transform route values to redirect the request

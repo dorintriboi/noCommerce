@@ -37,7 +37,6 @@ namespace Nop.Web.Areas.Admin.Factories
     public partial class BaseAdminModelFactory : IBaseAdminModelFactory
     {
         #region Fields
-
         private readonly ICategoryService _categoryService;
         private readonly ICategoryTemplateService _categoryTemplateService;
         private readonly ICountryService _countryService;
@@ -66,7 +65,8 @@ namespace Nop.Web.Areas.Admin.Factories
 
         #region Ctor
 
-        public BaseAdminModelFactory(ICategoryService categoryService,
+        public BaseAdminModelFactory(
+            ICategoryService categoryService,
             ICategoryTemplateService categoryTemplateService,
             ICountryService countryService,
             ICurrencyService currencyService,
@@ -175,7 +175,8 @@ namespace Nop.Web.Areas.Admin.Factories
 
             return result;
         }
-
+        
+      
         /// <summary>
         /// Get manufacturer list
         /// </summary>
@@ -521,9 +522,10 @@ namespace Nop.Web.Areas.Admin.Factories
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
-
+            
             //prepare available categories
-            var availableCategoryItems = await GetCategoryListAsync();
+            var availableCategoryItems = await  GetCategoryListAsync();
+            
             foreach (var categoryItem in availableCategoryItems)
             {
                 items.Add(categoryItem);
@@ -532,6 +534,7 @@ namespace Nop.Web.Areas.Admin.Factories
             //insert special item for the default value
             await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);
         }
+        
 
         /// <summary>
         /// Prepare available manufacturers

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Events;
 using Nop.Services.Blogs;
+using Nop.Services.Catalog;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Messages;
@@ -26,6 +27,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         private readonly IBlogModelFactory _blogModelFactory;
         private readonly IBlogService _blogService;
+        private readonly IBlogCategoryService _categoryService;
         private readonly ICustomerActivityService _customerActivityService;
         private readonly IEventPublisher _eventPublisher;
         private readonly ILocalizationService _localizationService;
@@ -40,6 +42,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Ctor
 
         public BlogController(IBlogModelFactory blogModelFactory,
+            IBlogCategoryService categoryService,
             IBlogService blogService,
             ICustomerActivityService customerActivityService,
             IEventPublisher eventPublisher,
@@ -50,6 +53,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             IStoreService storeService,
             IUrlRecordService urlRecordService)
         {
+            _categoryService = categoryService;
             _blogModelFactory = blogModelFactory;
             _blogService = blogService;
             _customerActivityService = customerActivityService;
@@ -131,7 +135,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
 
             //prepare model
-            var model = await _blogModelFactory.PrepareBlogPostModelAsync(new BlogPostModel(), null);
+            var model = await _blogModelFactory.PrepareBlogPostModelAsync(new BlogPostModel(), null, true);
 
             return View(model);
         }
@@ -158,6 +162,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 //Stores
                 await SaveStoreMappingsAsync(blogPost, model);
+                
+                await SaveCategoryMappingsAsync(blogPost, model);
 
                 _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts.Added"));
 
@@ -172,6 +178,34 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //if we got this far, something failed, redisplay form
             return View(model);
+        }
+        protected virtual async Task SaveCategoryMappingsAsync(BlogPost product, BlogPostModel model)
+        {
+            var existingProductCategories = await _categoryService.GetProductCategoriesByProductIdAsync(product.Id, true);
+
+            //delete categories
+            foreach (var existingProductCategory in existingProductCategories)
+                if (!model.SelectedCategoryIds.Contains(existingProductCategory.CategoryId))
+                    await _categoryService.DeleteProductCategoryAsync(existingProductCategory);
+
+            //add categories
+            foreach (var categoryId in model.SelectedCategoryIds)
+            {
+                if (_categoryService.FindProductCategory(existingProductCategories, product.Id, categoryId) == null)
+                {
+                    //find next display order
+                    var displayOrder = 1;
+                    var existingCategoryMapping = await _categoryService.GetProductCategoriesByCategoryIdAsync(categoryId, showHidden: true);
+                    if (existingCategoryMapping.Any())
+                        displayOrder = existingCategoryMapping.Max(x => x.DisplayOrder) + 1;
+                    await _categoryService.InsertProductCategoryAsync(new BlogCategoryBlogPost
+                    {
+                        BlogId = product.Id,
+                        CategoryId = categoryId,
+                        DisplayOrder = displayOrder
+                    });
+                }
+            }
         }
 
         public virtual async Task<IActionResult> BlogPostEdit(int id)
@@ -216,6 +250,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 //Stores
                 await SaveStoreMappingsAsync(blogPost, model);
+                await SaveCategoryMappingsAsync(blogPost, model);
 
                 _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts.Updated"));
 

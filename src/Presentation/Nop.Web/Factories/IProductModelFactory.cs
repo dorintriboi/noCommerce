@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
 using Nop.Web.Models.Catalog;
@@ -20,6 +21,7 @@ namespace Nop.Web.Factories
         /// The task result contains the view path
         /// </returns>
         Task<string> PrepareProductTemplateViewPathAsync(Product product);
+        
 
         /// <summary>
         /// Prepare the product overview models
@@ -38,7 +40,6 @@ namespace Nop.Web.Factories
             bool preparePriceModel = true, bool preparePictureModel = true,
             int? productThumbPictureSize = null, bool prepareSpecificationAttributes = false,
             bool forceRedirectionAfterAddingToCart = false);
-
         /// <summary>
         /// Prepare the product combination models
         /// </summary>

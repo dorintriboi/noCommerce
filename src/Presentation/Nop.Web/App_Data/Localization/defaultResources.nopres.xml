@@ -1158,6 +1158,9 @@
   <LocaleResource Name="ActivityLog.PublicStore.ViewCategory">
     <Value>Public store. Viewed a category details page ('{0}')</Value>
   </LocaleResource>
+    <LocaleResource Name="ActivityLog.PublicStore.ViewBlogCategory">
+        <Value>Public store. Viewed a blog category details page ('{0}')</Value>
+    </LocaleResource>
   <LocaleResource Name="ActivityLog.PublicStore.ViewManufacturer">
     <Value>Public store. Viewed a manufacturer details page ('{0}')</Value>
   </LocaleResource>
@@ -2334,6 +2337,260 @@
   <LocaleResource Name="Admin.Catalog.Categories.Updated">
     <Value>The category has been updated successfully.</Value>
   </LocaleResource>
+
+    <LocaleResource Name="Admin.Catalog.BlogCategories">
+        <Value>Blog Categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.IsFeaturedBlog">
+        <Value>Is featured blog?</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Added">
+        <Value>The new category has been added successfully.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.AddNew">
+        <Value>Add a new blog category</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.BackToList">
+        <Value>back to blog category list</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Deleted">
+        <Value>The category has been deleted successfully.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Display">
+        <Value>Display</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.EditCategoryDetails">
+        <Value>Edit category details</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.AclCustomerRoles">
+        <Value>Limited to customer roles</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.AclCustomerRoles.Hint">
+        <Value>Select customer roles for which the category will be shown. Leave empty if you want this category to be visible to all users.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.AllowCustomersToSelectPageSize">
+        <Value>Allow customers to select page size</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.AllowCustomersToSelectPageSize.Hint">
+        <Value>Whether customers are allowed to select the page size from a predefined list of options.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.CategoryTemplate">
+        <Value>Blog category template</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.CategoryTemplate.Hint">
+        <Value>Choose a category template. This template defines how this category (and its products) will be displayed.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Deleted">
+        <Value>Deleted</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Description">
+        <Value>Description</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Description.Hint">
+        <Value>The description of the category.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Discounts">
+        <Value>Discounts</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Discounts.Hint">
+        <Value>Select discounts to apply to this category. You can manage discounts by selecting Discounts from the Promotions menu.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Discounts.NoDiscounts">
+        <Value>No discounts available. Create at least one discount before mapping.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.DisplayOrder">
+        <Value>Display order</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.DisplayOrder.Hint">
+        <Value>Set the category's display order. 1 represents the top of the list.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.IncludeInTopMenu">
+        <Value>Include in top menu</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.IncludeInTopMenu.Hint">
+        <Value>Display in the top menu bar. If this category is a subcategory, then ensure that its parent category also has this property enabled.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.LimitedToStores">
+        <Value>Limited to stores</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.LimitedToStores.Hint">
+        <Value>Option to limit this category to a certain store. If you have multiple stores, choose one or several from the list. If you don't use this option just leave this field empty.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.ManuallyPriceRange">
+        <Value>Enter price range manually</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.ManuallyPriceRange.Hint">
+        <Value>Check to enter price range manually, otherwise the automatic calculation of price range is enabled (based on prices of available products). Set price range manually if you have complex discount rules.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaDescription">
+        <Value>Meta description</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaDescription.Hint">
+        <Value>Meta description to be added to category page header.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaKeywords">
+        <Value>Meta keywords</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaKeywords.Hint">
+        <Value>Meta keywords to be added to category page header.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaTitle">
+        <Value>Meta title</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.MetaTitle.Hint">
+        <Value>Override the page title. The default is the name of the category.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Name">
+        <Value>Name</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Name.Hint">
+        <Value>The category's name.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Name.Required">
+        <Value>Please provide a name.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSize">
+        <Value>Page size</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSize.Hint">
+        <Value>Set the page size for products in this category e.g. '4' products per page.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSize.Positive">
+        <Value>Page size should have a positive value.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSizeOptions">
+        <Value>Page size options</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSizeOptions.Hint">
+        <Value>Comma separated list of page size options (e.g. 10, 5, 15, 20). First option is the default page size if none are selected.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PageSizeOptions.ShouldHaveUniqueItems">
+        <Value>Page size options should not have duplicate items.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Parent">
+        <Value>Parent category</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Parent.Hint">
+        <Value>Select a parent category for this category. Leave this field empty to make this the root level category.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Parent.None">
+        <Value>[None]</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Picture">
+        <Value>Picture</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Picture.Hint">
+        <Value>The category picture.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceFrom">
+        <Value>Price 'from'</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceFrom.GreaterThanOrEqualZero">
+        <Value>The price 'from' should be greater than or equal '0'.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceFrom.Hint">
+        <Value>Enter the price 'from'.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceRangeFiltering">
+        <Value>Price range filtering</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceRangeFiltering.Hint">
+        <Value>Check to enable the price range filtering.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceTo">
+        <Value>Price 'to'</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceTo.GreaterThanZeroOrPriceFrom">
+        <Value>The price 'to' should be greater than '{0}'.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.PriceTo.Hint">
+        <Value>Enter the price 'to'.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Published">
+        <Value>Published</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.Published.Hint">
+        <Value>Check to publish this category (visible in store). Uncheck to unpublish (category not available in store).</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.SeName">
+        <Value>Search engine friendly page name</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.SeName.Hint">
+        <Value>Set a search engine friendly page name e.g. 'the-best-category' to make your page URL 'http://www.yourStore.com/the-best-category'. Leave empty to generate it automatically based on the name of the category.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.ShowOnHomepage">
+        <Value>Show on home page</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Fields.ShowOnHomepage.Hint">
+        <Value>Check if you want to show a category on home page.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Import.CategoriesArentImported">
+        <Value>Categories with the following names aren't imported - {0}</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Imported">
+        <Value>Categories have been imported successfully.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Info">
+        <Value>Blog category info</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.ImportFromExcelTip">
+        <Value>Imported categories are distinguished by ID. If the ID already exists, then its corresponding category will be updated. You should not specify ID (leave 0) for new categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchCategoryName">
+        <Value>Blog category name</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchCategoryName.Hint">
+        <Value>A blog category name.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished">
+        <Value>Published</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished.All">
+        <Value>All</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished.Hint">
+        <Value>Search by a "Published" property.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished.PublishedOnly">
+        <Value>Published only</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchPublished.UnpublishedOnly">
+        <Value>Unpublished only</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchStore">
+        <Value>Store</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.List.SearchStore.Hint">
+        <Value>Search by a specific store.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Mappings">
+        <Value>Mappings</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs">
+        <Value>Blogs categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Products.AddNew">
+        <Value>Add a new blog category</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Products">
+        <Value>Add a new blog category</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.DisplayOrder">
+        <Value>Display order</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.IsFeaturedBlog">
+        <Value>Is featured blog category?</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.Fields.Blog">
+        <Value>Blog</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Blogs.SaveBeforeEdit">
+        <Value>You need to save the category before you can add blogs for this category page.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.BlogCategories.Updated">
+        <Value>The category has been updated successfully.</Value>
+    </LocaleResource>
+    
   <LocaleResource Name="Admin.Catalog.Manufacturers">
     <Value>Manufacturers</Value>
   </LocaleResource>
@@ -2901,6 +3158,15 @@
   <LocaleResource Name="Admin.Catalog.Products.Fields.Categories.NoCategoriesAvailable">
     <Value>No categories available.</Value>
   </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories">
+        <Value>Blog categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories.Hint">
+        <Value>Choose categories. You can manage blog categories by selecting Content management &gt; Blog categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Catalog.Products.Fields.BlogCategories.NoCategoriesAvailable">
+        <Value>No categories available.</Value>
+    </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.CustomerEntersPrice">
     <Value>Customer enters price</Value>
   </LocaleResource>
@@ -7749,6 +8015,15 @@
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.SitemapIncludeBlogPosts.Hint">
     <Value>Check if you want to include blog posts in sitemap.</Value>
   </LocaleResource>
+    <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.SitemapIncludeBlogCategories">
+        <Value>Sitemap includes blog posts</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.SitemapIncludeBlogCategories.Hint">
+        <Value>Check if you want to include blog posts in sitemap.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.SitemapIncludeBlogCategories.Hint">
+        <Value>Check if you want to include blog posts in sitemap.</Value>
+    </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.SitemapIncludeCategories">
     <Value>Sitemap includes categories</Value>
   </LocaleResource>
@@ -10362,6 +10637,146 @@
   <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.Updated">
     <Value>The blog post has been updated successfully.</Value>
   </LocaleResource>
+    
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories">
+        <Value>Blog categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Added">
+        <Value>The new blog categories has been added successfully.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.AddNew">
+        <Value>Add a new blog categories</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.BackToList">
+        <Value>back to blog categories list</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Deleted">
+        <Value>The blog post has been deleted successfully.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.EditBlogCategoriesDetails">
+        <Value>Edit blog categories details</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.AllowComments">
+        <Value>Allow comments</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.AllowComments.Hint">
+        <Value>When checked, customers can leave comments about your blog entry.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Body">
+        <Value>Body</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Body.Hint">
+        <Value>The body of this blog entry.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Body.Required">
+        <Value>Body is required.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.BodyOverview">
+        <Value>Body overview</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.BodyOverview.Hint">
+        <Value>Brief overview of this blog categories. If specified, then it will be used instead of full body on the main blog page. HTML is supported.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Comments">
+        <Value>View comments</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.CreatedOn">
+        <Value>Created on</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.EndDate">
+        <Value>End date</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.EndDate.Hint">
+        <Value>Set the blog categories end date in Coordinated Universal Time (UTC). You can also leave it empty.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.IncludeInSitemap">
+        <Value>Include in sitemap</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.IncludeInSitemap.Hint">
+        <Value>Check to include this blog categories in the sitemap.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Language">
+        <Value>Language</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Language.Hint">
+        <Value>The language of this blog entry. A customer will only see the blog entries for their selected language.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.LimitedToStores">
+        <Value>Limited to stores</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.LimitedToStores.Hint">
+        <Value>Option to limit this blog post to a certain store. If you have multiple stores, choose one or several from the list. If you don't use this option just leave this field empty.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaDescription">
+        <Value>Meta description</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaDescription.Hint">
+        <Value>Meta description to be added to blog categories page header.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaKeywords">
+        <Value>Meta keywords</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaKeywords.Hint">
+        <Value>Meta keywords to be added to blog categories page header.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaTitle">
+        <Value>Meta title</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.MetaTitle.Hint">
+        <Value>Override the page title. The default is the title of the blog categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.SeName">
+        <Value>Search engine friendly page name</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.SeName.Hint">
+        <Value>Set a search engine friendly page name e.g. 'the-best-blog-post' to make your page URL 'http://www.yourStore.com/the-best-blog-post'. Leave empty to generate it automatically based on the title of the blog categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.StartDate">
+        <Value>Start date</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.StartDate.Hint">
+        <Value>Set the blog categories start date in Coordinated Universal Time (UTC). You can also leave it empty.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Tags">
+        <Value>Tags</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Tags.Hint">
+        <Value>Tags are keywords that this blog categories can also be identified by. Enter a comma separated list of the tags to be associated with this blog categories.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Tags.NoDots">
+        <Value>Dots are not supported by tags.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Tags.Placeholder">
+        <Value>Enter tags ...</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Title">
+        <Value>Title</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Title.Hint">
+        <Value>The title of this blog entry.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Fields.Title.Required">
+        <Value>Title is required.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Info">
+        <Value>Info</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.List.SearchStore">
+        <Value>Store</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.List.SearchStore.Hint">
+        <Value>Search by a specific store.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.List.SearchTitle">
+        <Value>Title</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.List.SearchTitle.Hint">
+        <Value>Search by a blog categorie title.</Value>
+    </LocaleResource>
+    <LocaleResource Name="Admin.ContentManagement.Blog.BlogCategories.Updated">
+        <Value>The blog categorie has been updated successfully.</Value>
+    </LocaleResource>
+    
   <LocaleResource Name="Admin.ContentManagement.Blog.Comments">
     <Value>Blog comments</Value>
   </LocaleResource>
@@ -10375,7 +10790,7 @@
     <Value>Disapprove selected</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog.Comments.Fields.BlogPost">
-    <Value>Blog post</Value>
+    <Value>Blog posts</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog.Comments.Fields.Comment">
     <Value>Comment</Value>
@@ -10425,6 +10840,7 @@
   <LocaleResource Name="Admin.ContentManagement.Blog.Comments.List.SearchText.Hint">
     <Value>Search in comment text.</Value>
   </LocaleResource>
+    
   <LocaleResource Name="Admin.ContentManagement.Forums">
     <Value>Forums</Value>
   </LocaleResource>
@@ -19813,7 +20229,7 @@
     <Value>Blog posts</Value>
   </LocaleResource>
   <LocaleResource Name="Sitemap.Categories">
-    <Value>Categories</Value>
+    <Value>Blog categories</Value>
   </LocaleResource>
   <LocaleResource Name="Sitemap.Description">
     <Value>View the sitemap for this website below, with links to each of the pages and brief descriptions of what to find in each section</Value>

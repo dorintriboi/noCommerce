@@ -39,9 +39,14 @@ namespace Nop.Web.Infrastructure.Cache
         IConsumer<EntityInsertedEvent<Category>>,
         IConsumer<EntityUpdatedEvent<Category>>,
         IConsumer<EntityDeletedEvent<Category>>,
+        IConsumer<EntityInsertedEvent<BlogCategory>>,
+        IConsumer<EntityUpdatedEvent<BlogCategory>>,
+        IConsumer<EntityDeletedEvent<BlogCategory>>,
         //product categories
         IConsumer<EntityInsertedEvent<ProductCategory>>,
         IConsumer<EntityDeletedEvent<ProductCategory>>,
+        IConsumer<EntityInsertedEvent<BlogCategoryBlogPost>>,
+        IConsumer<EntityDeletedEvent<BlogCategoryBlogPost>>,
         //products
         IConsumer<EntityInsertedEvent<Product>>,
         IConsumer<EntityUpdatedEvent<Product>>,
@@ -115,6 +120,8 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ManufacturerNavigationPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryAllPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
         }
 
         /// <returns>A task that represents the asynchronous operation</returns>
@@ -124,6 +131,8 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ManufacturerNavigationPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryAllPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
         }
 
         /// <returns>A task that represents the asynchronous operation</returns>
@@ -133,6 +142,9 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ManufacturerNavigationPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryAllPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+            
         }
 
         #endregion
@@ -147,6 +159,8 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveAsync(NopModelCacheDefaults.VendorNavigationModelKey); //depends on VendorSettings.VendorBlockItemsToDisplay
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryAllPrefixCacheKey); //depends on CatalogSettings.ShowCategoryProductNumber and CatalogSettings.ShowCategoryProductNumberIncludingSubcategories
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey); //depends on CatalogSettings.ShowCategoryProductNumber and CatalogSettings.ShowCategoryProductNumberIncludingSubcategories
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.HomepageBestsellersIdsPrefixCacheKey); //depends on CatalogSettings.NumberOfBestsellersOnHomepage
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ProductsAlsoPurchasedIdsPrefixCacheKey); //depends on CatalogSettings.ProductsAlsoPurchasedNumber
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogPrefixCacheKey); //depends on BlogSettings.NumberOfTags
@@ -393,6 +407,7 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ProductDetailsPicturesPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ProductOverviewPicturesPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryPicturePrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryPicturePrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ManufacturerPicturePrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.VendorPicturePrefixCacheKey);
         }
@@ -406,6 +421,7 @@ namespace Nop.Web.Infrastructure.Cache
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ProductDetailsPicturesPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ProductOverviewPicturesPrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.CategoryPicturePrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryPicturePrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.ManufacturerPicturePrefixCacheKey);
             await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.VendorPicturePrefixCacheKey);
         }
@@ -554,5 +570,42 @@ namespace Nop.Web.Infrastructure.Cache
         #endregion
 
         #endregion
+
+        public async Task HandleEventAsync(EntityInsertedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryHomepagePrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.SitemapPrefixCacheKey);
+        }
+
+        public async Task HandleEventAsync(EntityUpdatedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryHomepagePrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.SitemapPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(string.Format(NopModelCacheDefaults.BlogCategoryPicturePrefixCacheKeyById, eventMessage.Entity.Id));
+        }
+
+        public async Task HandleEventAsync(EntityDeletedEvent<BlogCategory> eventMessage)
+        {
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryHomepagePrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.SitemapPrefixCacheKey);
+        }
+
+        public async Task HandleEventAsync(EntityInsertedEvent<BlogCategoryBlogPost> eventMessage)
+        {
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+        }
+
+        public async Task HandleEventAsync(EntityDeletedEvent<BlogCategoryBlogPost> eventMessage)
+        {
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryAllPrefixCacheKey);
+            await _staticCacheManager.RemoveByPrefixAsync(NopModelCacheDefaults.BlogCategoryXmlAllPrefixCacheKey);
+        }
     }
 }

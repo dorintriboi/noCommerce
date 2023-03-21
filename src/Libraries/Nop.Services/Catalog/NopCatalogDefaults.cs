@@ -1,4 +1,5 @@
 ﻿using Nop.Core.Caching;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 
 namespace Nop.Services.Catalog
@@ -53,6 +54,7 @@ namespace Nop.Services.Catalog
         /// {3} : store ID
         /// </remarks>
         public static CacheKey CategoriesByParentCategoryCacheKey => new("Nop.category.byparent.{0}-{1}-{2}-{3}", CategoriesByParentCategoryPrefix);
+        public static CacheKey BlogCategoriesByParentCategoryCacheKey => new("Nop.blogcategory.byparent.{0}-{1}-{2}-{3}", BlogCategoriesByParentCategoryPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
@@ -61,6 +63,7 @@ namespace Nop.Services.Catalog
         /// {0} : parent category ID
         /// </remarks>
         public static string CategoriesByParentCategoryPrefix => "Nop.category.byparent.{0}";
+        public static string BlogCategoriesByParentCategoryPrefix => "Nop.blogcategory.byparent.{0}";
 
         /// <summary>
         /// Gets a key for caching
@@ -72,6 +75,7 @@ namespace Nop.Services.Catalog
         /// {3} : show hidden records?
         /// </remarks>
         public static CacheKey CategoriesChildIdsCacheKey => new("Nop.category.childids.{0}-{1}-{2}-{3}", CategoriesChildIdsPrefix);
+        public static CacheKey BlogCategoriesChildIdsCacheKey => new("Nop.blogcategory.childids.{0}-{1}-{2}-{3}", BlogCategoriesChildIdsPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
@@ -80,6 +84,7 @@ namespace Nop.Services.Catalog
         /// {0} : parent category ID
         /// </remarks>
         public static string CategoriesChildIdsPrefix => "Nop.category.childids.{0}";
+        public static string BlogCategoriesChildIdsPrefix => "Nop.blogcategory.childids.{0}";
 
         /// <summary>
         /// Gets a key for caching
@@ -89,21 +94,26 @@ namespace Nop.Services.Catalog
         /// {1} : show hidden records?
         /// </remarks>
         public static CacheKey ChildCategoryIdLookupCacheKey => new("Nop.childcategoryidlookup.bystore.{0}-{1}", ChildCategoryIdLookupPrefix, ChildCategoryIdLookupByStorePrefix);
+        public static CacheKey ChildBlogCategoryIdLookupCacheKey => new("Nop.childblogcategoryidlookup.bystore.{0}-{1}", ChildBlogCategoryIdLookupPrefix, ChildBlogCategoryIdLookupByStorePrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string ChildCategoryIdLookupPrefix => "Nop.childcategoryidlookup.";
+        public static string ChildBlogCategoryIdLookupPrefix => "Nop.childblogcategoryidlookup.";
+
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string ChildCategoryIdLookupByStorePrefix => "Nop.childcategoryidlookup.bystore.{0}";
+        public static string ChildBlogCategoryIdLookupByStorePrefix => "Nop.childblogcategoryidlookup.bystore.{0}";
 
         /// <summary>
         /// Gets a key for caching
         /// </summary>
         public static CacheKey CategoriesHomepageCacheKey => new("Nop.category.homepage.", CategoriesHomepagePrefix);
+        public static CacheKey BlogCategoriesHomepageCacheKey => new("Nop.blogcategory.homepage.", BlogCategoriesHomepagePrefix);
 
         /// <summary>
         /// Gets a key for caching
@@ -113,11 +123,13 @@ namespace Nop.Services.Catalog
         /// {1} : roles of the current user
         /// </remarks>
         public static CacheKey CategoriesHomepageWithoutHiddenCacheKey => new("Nop.category.homepage.withouthidden-{0}-{1}", CategoriesHomepagePrefix);
+        public static CacheKey BlogCategoriesHomepageWithoutHiddenCacheKey => new("Nop.blogcategory.homepage.withouthidden-{0}-{1}", BlogCategoriesHomepagePrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string CategoriesHomepagePrefix => "Nop.category.homepage.";
+        public static string BlogCategoriesHomepagePrefix => "Nop.blogcategory.homepage.";
 
         /// <summary>
         /// Key for caching of category breadcrumb
@@ -129,11 +141,13 @@ namespace Nop.Services.Catalog
         /// {3} : language ID
         /// </remarks>
         public static CacheKey CategoryBreadcrumbCacheKey => new("Nop.category.breadcrumb.{0}-{1}-{2}-{3}", CategoryBreadcrumbPrefix);
+        public static CacheKey BlogCategoryBreadcrumbCacheKey => new("Nop.blogcategory.breadcrumb.{0}-{1}-{2}-{3}", BlogCategoryBreadcrumbPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string CategoryBreadcrumbPrefix => "Nop.category.breadcrumb.";
+        public static string BlogCategoryBreadcrumbPrefix => "Nop.blogcategory.breadcrumb.";
 
         /// <summary>
         /// Gets a key for caching
@@ -144,6 +158,7 @@ namespace Nop.Services.Catalog
         /// {2} : show hidden records?
         /// </remarks>
         public static CacheKey CategoriesAllCacheKey => new("Nop.category.all.{0}-{1}-{2}", NopEntityCacheDefaults<Category>.AllPrefix);
+        public static CacheKey BlogCategoriesAllCacheKey => new("Nop.blogcategory.all.{0}-{1}-{2}", NopEntityCacheDefaults<BlogCategory>.AllPrefix);
 
         /// <summary>
         /// Gets a key for caching
@@ -155,11 +170,13 @@ namespace Nop.Services.Catalog
         /// {3} : store ID
         /// </remarks>
         public static CacheKey ProductCategoriesByProductCacheKey => new("Nop.productcategory.byproduct.{0}-{1}-{2}-{3}", ProductCategoriesByProductPrefix);
+        public static CacheKey BlogCategoryBlogPostByBlogCacheKey => new("Nop.blogcategoryblogpost.byblog.{0}-{1}-{2}-{3}", BlogCategoryBlogPostByBlogPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string ProductCategoriesByProductPrefix => "Nop.productcategory.byproduct.{0}";
+        public static string BlogCategoryBlogPostByBlogPrefix => "Nop.blogcategoryblogpost.byproduct.{0}";
 
         /// <summary>
         /// Key for caching
@@ -170,11 +187,13 @@ namespace Nop.Services.Catalog
         /// {2} : categories ID hash
         /// </remarks>
         public static CacheKey CategoryProductsNumberCacheKey => new("Nop.productcategory.products.number.{0}-{1}-{2}", CategoryProductsNumberPrefix);
+        public static CacheKey BlogCategoryBlogPostNumberCacheKey => new("Nop.blogcategoryblogpost.products.number.{0}-{1}-{2}", BlogCategoryBlogPostNumberPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
         /// </summary>
         public static string CategoryProductsNumberPrefix => "Nop.productcategory.products.number.";
+        public static string BlogCategoryBlogPostNumberPrefix => "Nop.blogcategoryblogpost.products.number.";
 
         #endregion
 
@@ -190,6 +209,7 @@ namespace Nop.Services.Catalog
         /// {3} : store ID
         /// </remarks>
         public static CacheKey ProductManufacturersByProductCacheKey => new("Nop.productmanufacturer.byproduct.{0}-{1}-{2}-{3}", ProductManufacturersByProductPrefix);
+        public static CacheKey BlogManufacturersByBlogCacheKey => new("Nop.blogmanufacturer.byblog.{0}-{1}-{2}-{3}", BlogManufacturersByBlogPrefix);
 
         /// <summary>
         /// Gets a key pattern to clear cache
@@ -198,6 +218,7 @@ namespace Nop.Services.Catalog
         /// {0} : product ID
         /// </remarks>
         public static string ProductManufacturersByProductPrefix => "Nop.productmanufacturer.byproduct.{0}";
+        public static string BlogManufacturersByBlogPrefix => "Nop.productmanufacturer.byproduct.{0}";
 
         /// <summary>
         /// Gets a key for caching
@@ -263,6 +284,9 @@ namespace Nop.Services.Catalog
         /// </remarks>
         public static CacheKey CategoryFeaturedProductsIdsKey => new("Nop.product.featured.bycategory.{0}-{1}-{2}", CategoryFeaturedProductsIdsPrefix, FeaturedProductIdsPrefix);
         public static string CategoryFeaturedProductsIdsPrefix => "Nop.product.featured.bycategory.{0}";
+        
+        public static CacheKey BlogCategoryFeaturedBlogsIdsKey => new("Nop.blog.featured.bycategory.{0}-{1}-{2}", BlogCategoryFeaturedBlogsIdsPrefix, FeaturedBlogIdsPrefix);
+        public static string BlogCategoryFeaturedBlogsIdsPrefix => "Nop.product.featured.bycategory.{0}";
 
         /// <summary>
         /// Key for caching of a value indicating whether a manufacturer has featured products
@@ -276,6 +300,9 @@ namespace Nop.Services.Catalog
         public static string ManufacturerFeaturedProductIdsPrefix => "Nop.product.featured.bymanufacturer.{0}";
 
         public static string FeaturedProductIdsPrefix => "Nop.product.featured.";
+        
+        public static string FeaturedBlogIdsPrefix => "Nop.blog.featured.";
+
 
         /// <summary>
         /// Gets a key for product prices

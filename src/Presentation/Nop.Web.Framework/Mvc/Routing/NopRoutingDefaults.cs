@@ -45,6 +45,7 @@
                 /// Gets the generic category route name
                 /// </summary>
                 public static string Category => "Category";
+                public static string BlogCategory => "BlogCategory";
 
                 /// <summary>
                 /// Gets the generic manufacturer route name
@@ -113,6 +114,8 @@
             /// Gets default key for category id route value
             /// </summary>
             public static string CategoryId => "categoryid";
+            
+            public static string BlogCategoryId => "blogcategoryid";
 
             /// <summary>
             /// Gets default key for manufacturer id route value

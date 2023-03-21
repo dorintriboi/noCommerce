@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Vendors;
+using Nop.Web.Models.Blogs;
 using Nop.Web.Models.Catalog;
 
 namespace Nop.Web.Factories
@@ -21,6 +23,8 @@ namespace Nop.Web.Factories
         /// The task result contains the category model
         /// </returns>
         Task<CategoryModel> PrepareCategoryModelAsync(Category category, CatalogProductsCommand command);
+        
+        Task<BlogCategoryModel> PrepareBlogCategoryModelAsync(BlogCategory category, CatalogBlogsCommand command);
 
         /// <summary>
         /// Prepare category template view path
@@ -31,6 +35,8 @@ namespace Nop.Web.Factories
         /// The task result contains the category template view path
         /// </returns>
         Task<string> PrepareCategoryTemplateViewPathAsync(int templateId);
+        Task<string>PrepareBlogCategoryTemplateViewPathAsync(int templateId);
+       
 
         /// <summary>
         /// Prepare category navigation model
@@ -43,6 +49,9 @@ namespace Nop.Web.Factories
         /// </returns>
         Task<CategoryNavigationModel> PrepareCategoryNavigationModelAsync(int currentCategoryId,
             int currentProductId);
+        Task<BlogCategoryNavigationModel> PrepareBlogCategoryNavigationModelAsync(int currentCategoryId,
+            int currentProductId);
+        
 
         /// <summary>
         /// Prepare top menu model
@@ -61,6 +70,7 @@ namespace Nop.Web.Factories
         /// The task result contains the list of homepage category models
         /// </returns>
         Task<List<CategoryModel>> PrepareHomepageCategoryModelsAsync();
+        Task<List<BlogCategoryModel>> PrepareHomepageBlogCategoryModelsAsync();
 
         /// <summary>
         /// Prepare root categories for menu
@@ -91,6 +101,7 @@ namespace Nop.Web.Factories
         /// The task result contains the category products model
         /// </returns>
         Task<CatalogProductsModel> PrepareCategoryProductsModelAsync(Category category, CatalogProductsCommand command);
+        Task<CatalogBlogsModel> PrepareBlogCategoryBlogPostModelAsync(BlogCategory category, CatalogBlogsCommand command);
 
         /// <summary>
         /// Prepare category (simple) models
@@ -269,6 +280,8 @@ namespace Nop.Web.Factories
         /// The task result contains the new products model
         /// </returns>
         Task<CatalogProductsModel> PrepareNewProductsModelAsync(CatalogProductsCommand command);
+        Task<CatalogBlogsModel>  PrepareNewBlogsModelAsync(CatalogBlogsCommand command);
+       
 
         #endregion
 

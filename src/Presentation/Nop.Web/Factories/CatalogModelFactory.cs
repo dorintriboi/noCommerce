@@ -18,6 +18,7 @@ using Nop.Core.Domain.Forums;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Events;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
@@ -30,6 +31,7 @@ using Nop.Services.Vendors;
 using Nop.Web.Framework.Events;
 using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Infrastructure.Cache;
+using Nop.Web.Models.Blogs;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Media;
 
@@ -44,7 +46,9 @@ namespace Nop.Web.Factories
         private readonly DisplayDefaultMenuItemSettings _displayDefaultMenuItemSettings;
         private readonly ForumSettings _forumSettings;
         private readonly ICategoryService _categoryService;
+        private readonly IBlogCategoryService _blogCategoryService;
         private readonly ICategoryTemplateService _categoryTemplateService;
+        private readonly IBlogCategoryTemplateService _categoryBlogTemplateService;
         private readonly ICurrencyService _currencyService;
         private readonly ICustomerService _customerService;
         private readonly IEventPublisher _eventPublisher;
@@ -55,7 +59,9 @@ namespace Nop.Web.Factories
         private readonly INopUrlHelper _nopUrlHelper;
         private readonly IPictureService _pictureService;
         private readonly IProductModelFactory _productModelFactory;
+        private readonly IBlogModelFactory _blogModelFactory;
         private readonly IProductService _productService;
+        private readonly IBlogService _blogService;
         private readonly IProductTagService _productTagService;
         private readonly ISearchTermService _searchTermService;
         private readonly ISpecificationAttributeService _specificationAttributeService;
@@ -75,6 +81,10 @@ namespace Nop.Web.Factories
 
         public CatalogModelFactory(BlogSettings blogSettings,
             CatalogSettings catalogSettings,
+            IBlogCategoryTemplateService categoryBlogTemplateService,
+            IBlogCategoryService blogCategoryService,
+            IBlogService blogService,
+            IBlogModelFactory blogModelFactory,
             DisplayDefaultMenuItemSettings displayDefaultMenuItemSettings,
             ForumSettings forumSettings,
             ICategoryService categoryService,
@@ -103,7 +113,11 @@ namespace Nop.Web.Factories
             MediaSettings mediaSettings,
             VendorSettings vendorSettings)
         {
+            _categoryBlogTemplateService = categoryBlogTemplateService;
+            _blogModelFactory = blogModelFactory;
+            _blogCategoryService = blogCategoryService;
             _blogSettings = blogSettings;
+            _blogService = blogService;
             _catalogSettings = catalogSettings;
             _displayDefaultMenuItemSettings = displayDefaultMenuItemSettings;
             _forumSettings = forumSettings;
@@ -198,6 +212,7 @@ namespace Nop.Web.Factories
 
             return result;
         }
+        
 
         /// <summary>
         /// Prepares the specification filter model
@@ -359,6 +374,22 @@ namespace Nop.Web.Factories
                 model.LoadPagedList(products);
             }
         }
+        
+    
+        protected virtual async Task PrepareCatalogBlogsAsync(CatalogBlogsModel model, IPagedList<BlogPost> products, bool isFiltering = false)
+        {
+            if (!string.IsNullOrEmpty(model.WarningMessage))
+                return;
+
+            if (products.Count == 0 && isFiltering)
+                model.NoResultMessage = await _localizationService.GetResourceAsync("Catalog.Products.NoResult");
+            else
+            {
+                model.Blogs = (await _blogModelFactory.PrepareBlogOverviewModelsAsync(products)).ToList();
+                model.LoadPagedList(products);
+            }
+        }
+
 
         #endregion
 
@@ -461,6 +492,95 @@ namespace Nop.Web.Factories
 
             return model;
         }
+        
+        public virtual async Task<BlogCategoryModel> PrepareBlogCategoryModelAsync(BlogCategory category, CatalogBlogsCommand command)
+        {
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new BlogCategoryModel
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                MetaKeywords = category.MetaKeywords,
+                MetaDescription = category.MetaDescription,
+                MetaTitle =category.MetaTitle,
+                SeName = await _urlRecordService.GetSeNameAsync(category),
+                CatalogProductsModel = await PrepareBlogCategoryBlogPostModelAsync(category, command)
+            };
+
+            //category breadcrumb
+            if (_catalogSettings.BlogCategoryBreadcrumbEnabled)
+            {
+                model.DisplayCategoryBreadcrumb = true;
+
+                model.CategoryBreadcrumb = await (await _blogCategoryService.GetCategoryBreadCrumbAsync(category)).SelectAwait(async catBr =>
+                    new BlogCategoryModel
+                    {
+                        Id = catBr.Id,
+                        Name = await _localizationService.GetLocalizedAsync(catBr, x => x.Name),
+                        SeName = await _urlRecordService.GetSeNameAsync(catBr)
+                    }).ToListAsync();
+            }
+
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+            var pictureSize = _mediaSettings.CategoryThumbPictureSize;
+
+            //subcategories
+            model.SubCategories = await (await _blogCategoryService.GetAllCategoriesByParentCategoryIdAsync(category.Id))
+                .SelectAwait(async curCategory =>
+                {
+                    var subCatModel = new BlogCategoryModel.SubCategoryModel()
+                    {
+                        Id = curCategory.Id,
+                        Name = await _localizationService.GetLocalizedAsync(curCategory, y => y.Name),
+                        SeName = await _urlRecordService.GetSeNameAsync(curCategory),
+                        Description = await _localizationService.GetLocalizedAsync(curCategory, y => y.Description)
+                    };
+
+                    //prepare picture model
+                    var categoryPictureCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogCategoryPictureModelKey, curCategory,
+                        pictureSize, true, await _workContext.GetWorkingLanguageAsync(), _webHelper.IsCurrentConnectionSecured(),
+                        currentStore);
+
+                    subCatModel.PictureModel = await _staticCacheManager.GetAsync(categoryPictureCacheKey, async () =>
+                    {
+                        var picture = await _pictureService.GetPictureByIdAsync(curCategory.PictureId);
+                        string fullSizeImageUrl, imageUrl;
+
+                        (fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture);
+                        (imageUrl, _) = await _pictureService.GetPictureUrlAsync(picture, pictureSize);
+
+                        var pictureModel = new PictureModel
+                        {
+                            FullSizeImageUrl = fullSizeImageUrl,
+                            ImageUrl = imageUrl,
+                            Title = string.Format(await _localizationService
+                                .GetResourceAsync("Media.Category.ImageLinkTitleFormat"), subCatModel.Name),
+                            AlternateText = string.Format(await _localizationService
+                                .GetResourceAsync("Media.Category.ImageAlternateTextFormat"), subCatModel.Name)
+                        };
+
+                        return pictureModel;
+                    });
+
+                    return subCatModel;
+                }).ToListAsync();
+
+            //featured products
+            if (!_catalogSettings.IgnoreFeaturedProducts)
+            {
+                var featuredProducts = await _blogService.GetBlogCategoryFeaturedBlogsAsync(category.Id, currentStore.Id);
+                if (featuredProducts != null)
+                    model.FeaturedProducts = (await _blogModelFactory.PrepareBlogOverviewModelsAsync(featuredProducts)).ToList();
+            }
+
+            return model;
+        }
 
         /// <summary>
         /// Prepare category template view path
@@ -474,6 +594,16 @@ namespace Nop.Web.Factories
         {
             var template = await _categoryTemplateService.GetCategoryTemplateByIdAsync(templateId) ??
                            (await _categoryTemplateService.GetAllCategoryTemplatesAsync()).FirstOrDefault();
+
+            if (template == null)
+                throw new Exception("No default template could be loaded");
+
+            return template.ViewPath;
+        }
+        public virtual async Task<string> PrepareBlogCategoryTemplateViewPathAsync(int templateId)
+        {
+            var template = await _categoryBlogTemplateService.GetCategoryTemplateByIdAsync(templateId) ??
+                           (await _categoryBlogTemplateService.GetAllCategoryTemplatesAsync()).FirstOrDefault();
 
             if (template == null)
                 throw new Exception("No default template could be loaded");
@@ -516,6 +646,32 @@ namespace Nop.Web.Factories
 
             return model;
         }
+        public virtual async Task<BlogCategoryNavigationModel> PrepareBlogCategoryNavigationModelAsync(int currentCategoryId, int currentProductId)
+        {
+            //get active category
+            var activeCategoryId = 0;
+            if (currentCategoryId > 0)
+            {
+                //category details page
+                activeCategoryId = currentCategoryId;
+            }
+            else if (currentProductId > 0)
+            {
+                //product details page
+                var productCategories = await _categoryService.GetBlogCategoriesByBlogPostIdAsync(currentProductId);
+                if (productCategories.Any())
+                    activeCategoryId = productCategories[0].CategoryId;
+            }
+
+            var cachedCategoriesModel = await PrepareBlogCategorySimpleModelsAsync();
+            var model = new BlogCategoryNavigationModel
+            {
+                CurrentBlogCategoryId = activeCategoryId,
+                BlogCategories = cachedCategoriesModel
+            };
+
+            return model;
+        }
 
         /// <summary>
         /// Prepare top menu model
@@ -527,9 +683,12 @@ namespace Nop.Web.Factories
         public virtual async Task<TopMenuModel> PrepareTopMenuModelAsync()
         {
             var cachedCategoriesModel = new List<CategorySimpleModel>();
+            var cachedBlogCategoriesModel = new List<BlogCategorySimpleModel>();
             //categories
             if (!_catalogSettings.UseAjaxLoadMenu)
                 cachedCategoriesModel = await PrepareCategorySimpleModelsAsync();
+            if (!_catalogSettings.UseAjaxLoadMenu)
+                cachedBlogCategoriesModel = await PrepareBlogCategorySimpleModelsAsync();
 
             var store = await _storeContext.GetCurrentStoreAsync();
 
@@ -545,6 +704,7 @@ namespace Nop.Web.Factories
             var model = new TopMenuModel
             {
                 Categories = cachedCategoriesModel,
+                BlogCategories = cachedBlogCategoriesModel,
                 Topics = topicModel,
                 NewProductsEnabled = _catalogSettings.NewProductsEnabled,
                 BlogEnabled = _blogSettings.Enabled,
@@ -624,6 +784,63 @@ namespace Nop.Web.Factories
 
             return model;
         }
+        
+        public virtual async Task<List<BlogCategoryModel>> PrepareHomepageBlogCategoryModelsAsync()
+        {
+            var language = await _workContext.GetWorkingLanguageAsync();
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+            var store = await _storeContext.GetCurrentStoreAsync();
+            var pictureSize = _mediaSettings.CategoryThumbPictureSize;
+            var categoriesCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogCategoryHomepageKey,
+                store, customerRoleIds, pictureSize, language, _webHelper.IsCurrentConnectionSecured());
+
+            var model = await _staticCacheManager.GetAsync(categoriesCacheKey, async () =>
+            {
+                var homepageCategories = await _blogCategoryService.GetAllCategoriesDisplayedOnHomepageAsync();
+                return await homepageCategories.SelectAwait(async category =>
+                {
+                    var catModel = new BlogCategoryModel
+                    {
+                        Id = category.Id,
+                        Name = await _localizationService.GetLocalizedAsync(category, x => x.Name),
+                        Description = await _localizationService.GetLocalizedAsync(category, x => x.Description),
+                        MetaKeywords = await _localizationService.GetLocalizedAsync(category, x => x.MetaKeywords),
+                        MetaDescription = await _localizationService.GetLocalizedAsync(category, x => x.MetaDescription),
+                        MetaTitle = await _localizationService.GetLocalizedAsync(category, x => x.MetaTitle),
+                        SeName = await _urlRecordService.GetSeNameAsync(category),
+                    };
+
+                    //prepare picture model
+                    var secured = _webHelper.IsCurrentConnectionSecured();
+                    var categoryPictureCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogCategoryPictureModelKey,
+                        category, pictureSize, true, language, secured, store);
+                    catModel.PictureModel = await _staticCacheManager.GetAsync(categoryPictureCacheKey, async () =>
+                    {
+                        var picture = await _pictureService.GetPictureByIdAsync(category.PictureId);
+                        string fullSizeImageUrl, imageUrl;
+
+                        (fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture);
+                        (imageUrl, _) = await _pictureService.GetPictureUrlAsync(picture, pictureSize);
+
+                        var titleLocale = await _localizationService.GetResourceAsync("Media.Category.ImageLinkTitleFormat");
+                        var altLocale = await _localizationService.GetResourceAsync("Media.Category.ImageAlternateTextFormat");
+                        return new PictureModel
+                        {
+                            FullSizeImageUrl = fullSizeImageUrl,
+                            ImageUrl = imageUrl,
+                            Title = string.Format(titleLocale, catModel.Name),
+                            AlternateText = string.Format(altLocale, catModel.Name)
+                        };
+                    });
+
+                    return catModel;
+                }).ToListAsync();
+            });
+
+            return model;
+        }
+
 
         /// <summary>
         /// Prepare root categories for menu
@@ -779,6 +996,75 @@ namespace Nop.Web.Factories
 
             return model;
         }
+        
+        public virtual async Task<CatalogBlogsModel> PrepareBlogCategoryBlogPostModelAsync(BlogCategory category, CatalogBlogsCommand command)
+        {
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogBlogsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogBlogsLoading
+            };
+
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
+            //sorting
+            await PrepareSortingOptionsAsync(model, command);
+            //view mode
+            await PrepareViewModesAsync(model, command);
+            //page size
+            await PreparePageSizeOptionsAsync(model, command, category.AllowCustomersToSelectPageSize,
+                category.PageSizeOptions, category.PageSize);
+
+            var categoryIds = new List<int> { category.Id };
+
+            //include subcategories
+            if (_catalogSettings.ShowProductsFromSubcategories)
+                categoryIds.AddRange(await _categoryService.GetChildCategoryIdsAsync(category.Id, currentStore.Id));
+
+            //price range
+
+
+            //filterable options
+            var filterableOptions = await _specificationAttributeService
+                .GetFiltrableSpecificationAttributeOptionsByCategoryIdAsync(category.Id);
+
+            if (_catalogSettings.EnableSpecificationAttributeFiltering)
+            {
+                model.SpecificationFilter = await PrepareSpecificationFilterModel(command.SpecificationOptionIds, filterableOptions);
+            }
+
+            //filterable manufacturers
+            if (_catalogSettings.EnableManufacturerFiltering)
+            {
+                var manufacturers = await _manufacturerService.GetManufacturersByCategoryIdAsync(category.Id);
+
+                model.ManufacturerFilter = await PrepareManufacturerFilterModel(command.ManufacturerIds, manufacturers);
+            }
+
+            var filteredSpecs = command.SpecificationOptionIds is null ? null : filterableOptions.Where(fo => command.SpecificationOptionIds.Contains(fo.Id)).ToList();
+
+            //products
+            var products = await _blogService.SearchBlogsAsync(
+                command.PageNumber - 1,
+                command.PageSize,
+                categoryIds: categoryIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedBlogs && !_catalogSettings.IncludeFeaturedBlogsInNormalLists,
+                manufacturerIds: command.ManufacturerIds,
+                filteredSpecOptions: filteredSpecs,
+                orderBy: (BlogSortingEnum)command.OrderBy);
+
+            var isFiltering = filterableOptions.Any();
+            await PrepareCatalogBlogsAsync(model, products, isFiltering);
+
+            return model;
+        }
 
         /// <summary>
         /// Prepare category (simple) models
@@ -798,6 +1084,18 @@ namespace Nop.Web.Factories
                 language, customerRoleIds, store);
 
             return await _staticCacheManager.GetAsync(cacheKey, async () => await PrepareCategorySimpleModelsAsync(0));
+        }
+        public virtual async Task<List<BlogCategorySimpleModel>> PrepareBlogCategorySimpleModelsAsync()
+        {
+            //load and cache them
+            var language = await _workContext.GetWorkingLanguageAsync();
+            var customer = await _workContext.GetCurrentCustomerAsync();
+            var customerRoleIds = await _customerService.GetCustomerRoleIdsAsync(customer);
+            var store = await _storeContext.GetCurrentStoreAsync();
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.BlogCategoryAllModelKey,
+                language, customerRoleIds, store);
+
+            return await _staticCacheManager.GetAsync(cacheKey, async () => await PrepareBlogCategorySimpleModelsAsync(0));
         }
 
         /// <summary>
@@ -847,6 +1145,56 @@ namespace Nop.Web.Factories
                 if (loadSubCategories)
                 {
                     var subCategories = await PrepareCategorySimpleModelsAsync(category.Id);
+                    categoryModel.SubCategories.AddRange(subCategories);
+                }
+
+                categoryModel.HaveSubCategories = categoryModel.SubCategories.Count > 0 &
+                    categoryModel.SubCategories.Any(x => x.IncludeInTopMenu);
+
+                result.Add(categoryModel);
+            }
+
+            return result;
+        }
+        
+         public virtual async Task<List<BlogCategorySimpleModel>> PrepareBlogCategorySimpleModelsAsync(int rootCategoryId, bool loadSubCategories = true)
+        {
+            var result = new List<BlogCategorySimpleModel>();
+
+            //little hack for performance optimization
+            //we know that this method is used to load top and left menu for categories.
+            //it'll load all categories anyway.
+            //so there's no need to invoke "GetAllCategoriesByParentCategoryId" multiple times (extra SQL commands) to load childs
+            //so we load all categories at once (we know they are cached)
+            var store = await _storeContext.GetCurrentStoreAsync();
+            var allCategories = await _blogCategoryService.GetAllCategoriesAsync(storeId: store.Id);
+            var categories = allCategories.Where(c => c.ParentCategoryId == rootCategoryId).OrderBy(c => c.DisplayOrder).ToList();
+            foreach (var category in categories)
+            {
+                var categoryModel = new BlogCategorySimpleModel
+                {
+                    Id = category.Id,
+                    Name = await _localizationService.GetLocalizedAsync(category, x => x.Name),
+                    SeName = await _urlRecordService.GetSeNameAsync(category),
+                    IncludeInTopMenu = category.IncludeInTopMenu
+                };
+
+                //number of products in each category
+                if (_catalogSettings.ShowCategoryProductNumber)
+                {
+                    var categoryIds = new List<int> { category.Id };
+                    //include subcategories
+                    if (_catalogSettings.ShowBlogCategoryBlogPostNumberIncludingSubcategories)
+                        categoryIds.AddRange(
+                            await _blogCategoryService.GetChildCategoryIdsAsync(category.Id, store.Id));
+
+                    categoryModel.NumberOfProducts =
+                        await _blogService.GetNumberOfBlogsInBlogCategoryAsync(categoryIds, store.Id);
+                }
+
+                if (loadSubCategories)
+                {
+                    var subCategories = await PrepareBlogCategorySimpleModelsAsync(category.Id);
                     categoryModel.SubCategories.AddRange(subCategories);
                 }
 
@@ -1571,6 +1919,31 @@ namespace Nop.Web.Factories
             return model;
         }
 
+        public virtual async Task<CatalogBlogsModel> PrepareNewBlogsModelAsync(CatalogBlogsCommand command)
+        {
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogBlogsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
+            };
+
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
+            //page size
+            await PreparePageSizeOptionsAsync(model, command, _catalogSettings.NewBlogsAllowCustomersToSelectPageSize,
+                _catalogSettings.NewBlogsPageSizeOptions, _catalogSettings.NewBlogsPageSize);
+
+            //products
+            var products = await _blogService.GetBlogsMarkedAsNewAsync(storeId: currentStore.Id,
+                pageIndex: command.PageNumber - 1,
+                pageSize: command.PageSize);
+
+            await PrepareCatalogBlogsAsync(model, products);
+
+            return model;
+        }
         #endregion
 
         #region Searching
@@ -1921,6 +2294,40 @@ namespace Nop.Web.Factories
                 });
             }
         }
+        
+        public virtual async Task PrepareSortingOptionsAsync(CatalogBlogsModel model, CatalogBlogsCommand command)
+        {
+            //get active sorting options
+            var activeSortingOptionsIds = Enum.GetValues(typeof(BlogSortingEnum)).Cast<int>()
+                .Except(_catalogSettings.ProductSortingEnumDisabled).ToList();
+
+            //order sorting options
+            var orderedActiveSortingOptions = activeSortingOptionsIds
+                .Select(id => new { Id = id, Order = _catalogSettings.BlogSortingEnumDisplayOrder.TryGetValue(id, out var order) ? order : id })
+                .OrderBy(option => option.Order).ToList();
+
+            //set the default option
+            model.OrderBy = command.OrderBy;
+            command.OrderBy = orderedActiveSortingOptions.FirstOrDefault()?.Id ?? (int)BlogSortingEnum.Position;
+
+            //ensure that product sorting is enabled
+            if (!_catalogSettings.AllowProductSorting)
+                return;
+
+            model.AllowBlogSorting = true;
+            command.OrderBy = model.OrderBy ?? command.OrderBy;
+
+            //prepare available model sorting options
+            foreach (var option in orderedActiveSortingOptions)
+            {
+                model.AvailableSortOptions.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetLocalizedEnumAsync((BlogSortingEnum)option.Id),
+                    Value = option.Id.ToString(),
+                    Selected = option.Id == command.OrderBy
+                });
+            }
+        }
 
         /// <summary>
         /// Prepare view modes
@@ -1954,6 +2361,32 @@ namespace Nop.Web.Factories
                 });
             }
         }
+        public virtual async Task PrepareViewModesAsync(CatalogBlogsModel model, CatalogBlogsCommand command)
+        {
+            model.AllowBlogViewModeChanging = _catalogSettings.AllowBlogViewModeChanging;
+
+            var viewMode = !string.IsNullOrEmpty(command.ViewMode)
+                ? command.ViewMode
+                : _catalogSettings.DefaultViewMode;
+            model.ViewMode = viewMode;
+            if (model.AllowBlogViewModeChanging)
+            {
+                //grid
+                model.AvailableViewModes.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.Grid"),
+                    Value = "grid",
+                    Selected = viewMode == "grid"
+                });
+                //list
+                model.AvailableViewModes.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.List"),
+                    Value = "list",
+                    Selected = viewMode == "list"
+                });
+            }
+        }
 
         /// <summary>
         /// Prepare page size options
@@ -1965,6 +2398,70 @@ namespace Nop.Web.Factories
         /// <param name="fixedPageSize">Fixed page size</param>
         /// <returns>A task that represents the asynchronous operation</returns>
         public virtual Task PreparePageSizeOptionsAsync(CatalogProductsModel model, CatalogProductsCommand command,
+            bool allowCustomersToSelectPageSize, string pageSizeOptions, int fixedPageSize)
+        {
+            if (command.PageNumber <= 0)
+                command.PageNumber = 1;
+
+            model.AllowCustomersToSelectPageSize = false;
+            if (allowCustomersToSelectPageSize && pageSizeOptions != null)
+            {
+                var pageSizes = pageSizeOptions.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (pageSizes.Any())
+                {
+                    // get the first page size entry to use as the default (category page load) or if customer enters invalid value via query string
+                    if (command.PageSize <= 0 || !pageSizes.Contains(command.PageSize.ToString()))
+                    {
+                        if (int.TryParse(pageSizes.FirstOrDefault(), out var temp))
+                        {
+                            if (temp > 0)
+                                command.PageSize = temp;
+                        }
+                    }
+
+                    foreach (var pageSize in pageSizes)
+                    {
+                        if (!int.TryParse(pageSize, out var temp))
+                            continue;
+
+                        if (temp <= 0)
+                            continue;
+
+                        model.PageSizeOptions.Add(new SelectListItem
+                        {
+                            Text = pageSize,
+                            Value = pageSize,
+                            Selected = pageSize.Equals(command.PageSize.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        });
+                    }
+
+                    if (model.PageSizeOptions.Any())
+                    {
+                        model.PageSizeOptions = model.PageSizeOptions.OrderBy(x => int.Parse(x.Value)).ToList();
+                        model.AllowCustomersToSelectPageSize = true;
+
+                        if (command.PageSize <= 0)
+                            command.PageSize = int.Parse(model.PageSizeOptions.First().Value);
+                    }
+                }
+            }
+            else
+            {
+                //customer is not allowed to select a page size
+                command.PageSize = fixedPageSize;
+            }
+
+            //ensure pge size is specified
+            if (command.PageSize <= 0)
+            {
+                command.PageSize = fixedPageSize;
+            }
+
+            return Task.CompletedTask;
+        }
+        
+        public virtual Task PreparePageSizeOptionsAsync(CatalogBlogsModel model, CatalogBlogsCommand command,
             bool allowCustomersToSelectPageSize, string pageSizeOptions, int fixedPageSize)
         {
             if (command.PageNumber <= 0)

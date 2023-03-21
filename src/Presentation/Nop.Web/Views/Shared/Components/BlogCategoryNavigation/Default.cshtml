@@ -1,0 +1,87 @@
+﻿@model BlogCategoryNavigationModel
+
+@using Nop.Core.Domain.Catalog
+@using Nop.Core.Domain.Blogs
+
+@functions {
+    bool BreadCrumbContainsCurrentCategoryId(BlogCategorySimpleModel category)
+    {
+        if (Model.CurrentBlogCategoryId == 0)
+            return false;
+
+        if (category.Id == Model.CurrentBlogCategoryId)
+            return true;
+
+        foreach (var subCategory in category.SubCategories)
+        {
+            if (BreadCrumbContainsCurrentCategoryId(subCategory))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    async Task BlogCategoryLine(BlogCategoryNavigationModel.BlogCategoryLineModel lineModel)
+    {
+        var active = lineModel.BlogCategory.Id == lineModel.CurrentBlogCategoryId || lineModel.BlogCategory.SubCategories.Count(BreadCrumbContainsCurrentCategoryId) > 0;
+        var last = lineModel.BlogCategory.Id == lineModel.CurrentBlogCategoryId;
+        var liClass = active ? "active" : "inactive";
+        if (last)
+        {
+            liClass += " last";
+        }
+
+        <li class="@liClass">
+            <a href="@(Url.RouteUrl<BlogCategory>(new { SeName = lineModel.BlogCategory.SeName }))">@lineModel.BlogCategory.Name
+                @if (lineModel.BlogCategory.NumberOfProducts.HasValue)
+                {
+                    <text> </text>@T("Categories.TotalProducts", lineModel.BlogCategory.NumberOfProducts.Value)
+                }
+            </a>
+            @{
+                if (lineModel.BlogCategory.Id == lineModel.CurrentBlogCategoryId ||
+                    lineModel.BlogCategory.SubCategories.Count(BreadCrumbContainsCurrentCategoryId) > 0)
+                {
+                    if (lineModel.BlogCategory.SubCategories.Count > 0)
+                    {
+                        <ul class="sublist">
+                            @foreach (var subCategory in lineModel.BlogCategory.SubCategories)
+                            {
+                                var categoryLineModel = new BlogCategoryNavigationModel.BlogCategoryLineModel
+                                {
+                                    CurrentBlogCategoryId = lineModel.CurrentBlogCategoryId,
+                                    BlogCategory = subCategory
+                                };
+                                await BlogCategoryLine(categoryLineModel);
+                            }
+                        </ul>
+                    }
+                }
+            }
+        </li>
+    }
+}
+
+@if (Model.BlogCategories.Count > 0)
+{
+    <div class="block block-category-navigation">
+        <div class="title">
+            <strong>@T("Categories")</strong>
+        </div>
+        <div class="listbox">
+            <ul class="list">
+                @foreach (var category in Model.BlogCategories)
+                {
+                    var categoryLineModel = new BlogCategoryNavigationModel.BlogCategoryLineModel
+                    {
+                        CurrentBlogCategoryId = Model.CurrentBlogCategoryId,
+                        BlogCategory = category
+                    };
+                    await BlogCategoryLine(categoryLineModel);
+                }
+            </ul>
+        </div>
+    </div>
+}

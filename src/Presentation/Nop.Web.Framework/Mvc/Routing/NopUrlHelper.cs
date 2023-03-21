@@ -28,6 +28,7 @@ namespace Nop.Web.Framework.Mvc.Routing
         private readonly CatalogSettings _catalogSettings;
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly ICategoryService _categoryService;
+        private readonly IBlogCategoryService _blogCategoryService;
         private readonly IManufacturerService _manufacturerService;
         private readonly IStoreContext _storeContext;
         private readonly ITopicService _topicService;
@@ -41,12 +42,14 @@ namespace Nop.Web.Framework.Mvc.Routing
         public NopUrlHelper(CatalogSettings catalogSettings,
             IActionContextAccessor actionContextAccessor,
             ICategoryService categoryService,
+            IBlogCategoryService blogCategoryService,
             IManufacturerService manufacturerService,
             IStoreContext storeContext,
             ITopicService topicService,
             IUrlHelperFactory urlHelperFactory,
             IUrlRecordService urlRecordService)
         {
+            _blogCategoryService = blogCategoryService;
             _catalogSettings = catalogSettings;
             _actionContextAccessor = actionContextAccessor;
             _categoryService = categoryService;
@@ -78,14 +81,20 @@ namespace Nop.Web.Framework.Mvc.Routing
         {
             if (_catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.Product)
                 return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Product, values, protocol, host, fragment);
+            if (_catalogSettings.ProductUrlStructureTypeId == (int)BlogUrlStructureType.Blog)
+                return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.BlogPost, values, protocol, host, fragment);
 
             var routeValues = new RouteValueDictionary(values);
             if (!routeValues.TryGetValue(NopRoutingDefaults.RouteValue.SeName, out var slug))
                 return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Product, values, protocol, host, fragment);
+            if (!routeValues.TryGetValue(NopRoutingDefaults.RouteValue.SeName, out  slug))
+                return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.BlogPost, values, protocol, host, fragment);
 
             var urlRecord = await _urlRecordService.GetBySlugAsync(slug.ToString());
             if (urlRecord is null || !urlRecord.EntityName.Equals(nameof(Product), StringComparison.InvariantCultureIgnoreCase))
                 return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Product, values, protocol, host, fragment);
+            if (urlRecord is null || !urlRecord.EntityName.Equals(nameof(BlogPost), StringComparison.InvariantCultureIgnoreCase))
+                return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.BlogPost, values, protocol, host, fragment);
 
             var catalogSeName = string.Empty;
             if (_catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.CategoryProduct)
@@ -94,6 +103,13 @@ namespace Nop.Web.Framework.Mvc.Routing
                 var category = await _categoryService.GetCategoryByIdAsync(productCategory?.CategoryId ?? 0);
                 catalogSeName = category is not null ? await _urlRecordService.GetSeNameAsync(category) : string.Empty;
             }
+            if (_catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.BlogCategory)
+            {
+                var productCategory = (await _blogCategoryService.GetProductCategoriesByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var category = await _blogCategoryService.GetCategoryByIdAsync(productCategory?.CategoryId ?? 0);
+                catalogSeName = category is not null ? await _urlRecordService.GetSeNameAsync(category) : string.Empty;
+            }
+            
             if (_catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.ManufacturerProduct)
             {
                 var productManufacturer = (await _manufacturerService.GetProductManufacturersByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
@@ -104,6 +120,18 @@ namespace Nop.Web.Framework.Mvc.Routing
                 return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Product, values, protocol, host, fragment);
 
             routeValues[NopRoutingDefaults.RouteValue.CatalogSeName] = catalogSeName;
+            
+            if (_catalogSettings.BlogUrlStructureTypeId == (int)BlogUrlStructureType.ManufacturerBlog)
+            {
+                var productManufacturer = (await _manufacturerService.GetBlogManufacturersByBlogIdAsync(urlRecord.EntityId)).FirstOrDefault();
+                var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
+                catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
+            }
+            if (string.IsNullOrEmpty(catalogSeName))
+                return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.BlogPost, values, protocol, host, fragment);
+
+            routeValues[NopRoutingDefaults.RouteValue.CatalogSeName] = catalogSeName;
+            
             return urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.ProductCatalog, routeValues, protocol, host, fragment);
         }
 
@@ -133,6 +161,8 @@ namespace Nop.Web.Framework.Mvc.Routing
                     => await RouteProductUrlAsync(urlHelper, values, protocol, host, fragment),
                 var entityType when entityType == typeof(Category)
                     => urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Category, values, protocol, host, fragment),
+                var entityType when entityType == typeof(BlogCategory)
+                    => urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.BlogCategory, values, protocol, host, fragment),
                 var entityType when entityType == typeof(Manufacturer)
                     => urlHelper.RouteUrl(NopRoutingDefaults.RouteName.Generic.Manufacturer, values, protocol, host, fragment),
                 var entityType when entityType == typeof(Vendor)
